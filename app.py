@@ -39,10 +39,10 @@ game_html = r"""
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier New',monospace}
-.wrap{width:100%;max-width:1000px;margin:auto;padding:8px;background:#0b0d0e;border:1px solid #4b4638;border-radius:3px;box-shadow:0 0 0 1px #030404,inset 0 0 24px #c2a56a08}
+.wrap{width:100%;max-width:1000px;margin:auto;padding:9px;background:linear-gradient(145deg,#171923,#080a10 45%,#15101d);border:1px solid #756044;border-radius:7px;box-shadow:0 0 0 1px #030404,0 0 26px #9b5de522,inset 0 0 28px #c2a56a12}
 .hud{display:grid;grid-template-columns:minmax(210px,1.5fr) minmax(100px,.7fr) minmax(120px,.8fr);gap:8px;align-items:center;padding:8px 4px 10px;color:#d8d2c3;font-size:12px;letter-spacing:.5px}
 .status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.stat em{font-style:normal;color:#c7a96b}
-.stage{position:relative;border:1px solid #514838;background:#050708;line-height:0}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;}
+.stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
 @media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}}
@@ -269,6 +269,29 @@ function glow(x,y,r,color,alpha=1){
 function drawBackground(cam){
  // Night sky with a soft violet horizon
  const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,"#090d1d");sky.addColorStop(.55,"#171b35");sky.addColorStop(1,"#34213e");ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // Cinematic aurora ribbons and distant shafts of moonlight.
+ const time = performance.now() * 0.00012;
+ ctx.save();
+ for(let i=0;i<4;i++){
+  const x=((i*310 - cam*.035 + Math.sin(time+i)*65)% (W+180))-80;
+  const beam=ctx.createLinearGradient(x,20,x+95,390);
+  beam.addColorStop(0,"rgba(174,145,255,0)");
+  beam.addColorStop(.48,"rgba(133,119,220,0.055)");
+  beam.addColorStop(1,"rgba(174,145,255,0)");
+  ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(x-25,0);ctx.lineTo(x+65,0);ctx.lineTo(x+180,390);ctx.lineTo(x+60,390);ctx.closePath();ctx.fill();
+ }
+ ctx.globalAlpha=.11;
+ for(let i=0;i<3;i++){
+  ctx.strokeStyle=["#6f7fe0","#a76ac9","#5265a8"][i];ctx.lineWidth=20-i*5;
+  ctx.beginPath();
+  for(let x=0;x<=W;x+=24){
+   const y=95+i*34+Math.sin(x*.008+time*9+i*1.8)*20+Math.sin(x*.017-time*6)*8;
+   if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+ }
+ ctx.restore();
+
  // distant stars, with a few twinkling pixels
  for(let i=0;i<95;i++){let x=((i*173)%W-cam*.09+W)%W,y=(i*71)%300;let tw=.45+.45*Math.sin(performance.now()/550+i);ctx.globalAlpha=tw;rect(x,y,i%9===0?3:2,i%9===0?3:2,i%4===0?"#e6d5ff":"#9faed8");}ctx.globalAlpha=1;
  // moon halo and pixel moon
@@ -310,6 +333,40 @@ function drawWorld(cam){
   for(let x=9;x<p.w;x+=25){rect(p.x-cam+x,p.y+8,11,3,"#25293d");rect(p.x-cam+x+5,p.y+11,4,2,"#4b465e");}
   for(let x=12;x<p.w;x+=47)rect(p.x-cam+x,p.y-3,3,3,"#b5a6cb");
  });
+ // Ancient runes etched into selected platforms.
+ platforms().forEach((p,i)=>{
+  if(i%2===0){
+   const rx=p.x+p.w*.52-cam, ry=p.y+7;
+   ctx.save();ctx.globalAlpha=.32+.14*Math.sin(performance.now()/260+i);
+   ctx.strokeStyle="#b6a0e8";ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(rx-5,ry);ctx.lineTo(rx,ry-3);ctx.lineTo(rx+5,ry);
+   ctx.lineTo(rx,ry+4);ctx.closePath();ctx.stroke();
+   ctx.beginPath();ctx.moveTo(rx,ry-2);ctx.lineTo(rx,ry+3);ctx.stroke();ctx.restore();
+  }
+ });
+ // Floating spectral wisps that drift at different depths.
+ for(let i=0;i<12;i++){
+  const wx=((i*103+performance.now()*.018*(i%3+1)-cam*.16)%(W+80)+W+80)%(W+80)-20;
+  const wy=215+(i*47)%190+Math.sin(performance.now()*.0015+i*2)*12;
+  glow(wx,wy,20,i%3===0?"#e879f9":"#8b9cff",.12);
+  rect(wx,wy,3,5,i%3===0?"#e9a8ff":"#b6c5ff");
+  rect(wx+2,wy-3,2,3,"#e8e7ff");
+ }
+ // Dangling roots and dead branches frame the upper edge of the scene.
+ for(let i=0;i<11;i++){
+  const rx=((i*117-cam*.24)%W+W)%W;
+  const len=18+(i*29)%42;
+  ctx.fillStyle="#10131f";ctx.beginPath();ctx.moveTo(rx,0);ctx.lineTo(rx+8,0);ctx.lineTo(rx+4,len);ctx.lineTo(rx+1,len-5);ctx.closePath();ctx.fill();
+  if(i%3===0){ctx.fillStyle="#28213b";ctx.beginPath();ctx.moveTo(rx+5,len*.45);ctx.lineTo(rx+19,len*.62);ctx.lineTo(rx+6,len*.7);ctx.fill();}
+ }
+ // Tiny bioluminescent mushrooms beside safe ground.
+ for(let i=0;i<15;i++){
+  const mx=((i*149-cam*.65)%W+W)%W, my=world.ground-4;
+  if(!world.pits.some(p=>mx+cam>p[0]&&mx+cam<p[1])){
+   rect(mx,my-7,3,7,"#b9a4cf");rect(mx-3,my-9,9,4,i%3===0?"#d87bda":"#7993c7");
+   glow(mx+1,my-7,13,i%3===0?"#d946ef":"#818cf8",.22);
+  }
+ }
  // dangerous crystal spikes
  world.pits.forEach(p=>{for(let x=p[0]+4;x<p[1]-8;x+=16){glow(x-cam+8,world.ground-5,16,"#fb477e",.22);ctx.fillStyle="#e84e83";ctx.beginPath();ctx.moveTo(x-cam,world.ground+7);ctx.lineTo(x+8-cam,world.ground-12);ctx.lineTo(x+16-cam,world.ground+7);ctx.fill();ctx.fillStyle="#ffb4d0";ctx.beginPath();ctx.moveTo(x+6-cam,world.ground-7);ctx.lineTo(x+8-cam,world.ground-12);ctx.lineTo(x+10-cam,world.ground-7);ctx.fill();}});
  // New traps: chunky pixel boulders and warning-lit flame vents.
@@ -397,6 +454,14 @@ function drawWorld(cam){
  const px=player.x-cam, py=player.y;const run=player.grounded&&Math.abs(player.vx)>20;const step=run?Math.sin(player.anim)*3:0;
  ctx.globalAlpha=.35;rect(px-3,world.ground-4,30,4,"#000");ctx.globalAlpha=1;
  glow(px+12,py+19,38,"#6d75ff",.13);
+ // Pulsing soul-light around the knight, stronger while moving or attacking.
+ const aura=.08+(Math.abs(player.vx)/220)*.07+(attackTimer>0?.18:0);
+ glow(px+12,py+18,run?48:38,attackTimer>0?"#8be9ff":"#6d75ff",aura);
+ if(run && Math.floor(performance.now()/95)%2===0){
+  rect(px+(player.face>0?-5:25),py+23,3,3,"#a5b4fc");
+  rect(px+(player.face>0?-10:29),py+29,2,2,"#818cf8");
+ }
+
  if(invuln>0 && Math.floor(performance.now()/80)%2===0)ctx.globalAlpha=.42;
  // flowing scarf / cape
  rect(px+(player.face>0?-2:16),py+9,9,19,"#5c2879");rect(px+(player.face>0?-5:18),py+14,6,12,"#9b3f9b");rect(px+(player.face>0?-8:20),py+20,5,8,"#4b286c");
@@ -418,6 +483,25 @@ function draw(){
  ctx.save();
  if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*6);
  drawBackground(cam);drawWorld(cam);
+ // Foreground fog rolls across the ground in layered translucent ribbons.
+ ctx.save();
+ for(let i=0;i<7;i++){
+  const fx=((i*190-performance.now()*.022*(i%2?1:-.65))%(W+300)+W+300)%(W+300)-150;
+  const fy=world.ground-15+(i%3)*13;
+  const fog=ctx.createRadialGradient(fx,fy,3,fx,fy,150);
+  fog.addColorStop(0,"rgba(164,174,220,0.12)");
+  fog.addColorStop(1,"rgba(100,110,170,0)");
+  ctx.fillStyle=fog;ctx.fillRect(fx-150,fy-35,300,100);
+ }
+ // Dark vignette directs the eye toward the player and action.
+ const vignette=ctx.createRadialGradient(W*.5,H*.45,110,W*.5,H*.48,590);
+ vignette.addColorStop(0,"rgba(0,0,0,0)");
+ vignette.addColorStop(.7,"rgba(2,3,10,0.12)");
+ vignette.addColorStop(1,"rgba(1,2,7,0.68)");
+ ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
+ // Subtle edge highlights make the scene feel framed like a dark-fantasy game.
+ ctx.strokeStyle="rgba(204,176,125,0.24)";ctx.lineWidth=2;ctx.strokeRect(5,5,W-10,H-10);
+ ctx.restore();
  ctx.restore();
  // overlay
  if(world.boss && boss && boss.alive){
@@ -463,12 +547,13 @@ canvas.focus();
 components.html(game_html, height=650, scrolling=False)
 
 st.markdown("---")
-st.subheader("🕹️ Mục tiêu bản đầu")
+st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
 st.markdown(
     """
     - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**.
     - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
+    - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá, viền điện ảnh và hào quang nhân vật.
     - Điểm cao nhất được lưu trên trình duyệt của bạn. Đây là lưu cục bộ trên thiết bị hiện tại, chưa phải tài khoản đồng bộ giữa nhiều máy.
     """
 )
