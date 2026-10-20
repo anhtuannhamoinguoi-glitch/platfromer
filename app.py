@@ -1,4 +1,3 @@
-
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -54,7 +53,7 @@ canvas{display:block;width:100%;height:auto;background:#101927;border:2px solid 
     <span class="pill" id="sound">Âm thanh: bật (M)</span>
   </div>
   <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
-  <div class="hint">Đứng trên đầu quái vật để hạ nó hoặc nhấn J để tấn công gần. Tìm cổng phát sáng để sang màn tiếp theo.</div>
+  <div class="hint">Mẹo: đứng trên đầu quái vật để hạ nó hoặc nhấn J để tấn công gần. Tìm cổng phát sáng để sang màn tiếp theo.</div>
 </div>
 <script>
 (() => {
@@ -162,7 +161,9 @@ function update(dt){
  player.vx=Math.max(-speed,Math.min(speed,player.vx));
  if(jump && player.grounded){player.vy=-470;player.grounded=false;beep(360,.07,"square",.025);}
  player.vy+=1150*dt; player.vy=Math.min(player.vy,700);
+ // horizontal movement and world boundaries
  player.x+=player.vx*dt; player.x=Math.max(0,Math.min(world.length-player.w,player.x));
+ // collide with platforms while falling
  const oldY=player.y; player.y+=player.vy*dt; player.grounded=false;
  const floor=floorAt(player.x+player.w/2);
  if(player.y+player.h>=floor && oldY+player.h<=floor+14 && floor<H+50){player.y=floor-player.h;player.vy=0;player.grounded=true;}
@@ -172,7 +173,9 @@ function update(dt){
   }
  }
  if(player.y>H+80){damage();if(player.hp>0){player.x=Math.max(40,player.x-120);player.y=250;player.vy=0;}}
+ // collect coins
  coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins++;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);}});
+ // enemies
  enemies.forEach(e=>{
   if(!e.alive)return;
   e.x+=e.vx*dt;
@@ -190,6 +193,7 @@ function update(dt){
   boss.attack+=dt;
   if(hit(player,boss)){if(player.vy>90 && oldY+player.h<boss.y+18){boss.hp--;player.vy=-330;boss.flash=.2;score+=25;beep(190,.08,"sawtooth");if(boss.hp<=0){boss.alive=false;score+=1000;}}else damage();}
  }
+ // exit
  if(player.x+player.w>world.goal && (!world.boss || !boss.alive)) nextLevel();
  particles=particles.filter(p=>p.life>0);
  particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=350*dt;p.life-=dt;});
@@ -197,12 +201,16 @@ function update(dt){
 
 function drawBackground(cam){
  rect(0,0,W,H,"#101927");
+ // moon
  ctx.fillStyle="#c5d0db";ctx.beginPath();ctx.arc(790-cam*.08,92,34,0,Math.PI*2);ctx.fill();
  ctx.fillStyle="#101927";ctx.beginPath();ctx.arc(804-cam*.08,80,31,0,Math.PI*2);ctx.fill();
+ // stars
  for(let i=0;i<55;i++){let x=((i*173)%W-cam*.12+W)%W,y=(i*71)%220;rect(x,y,2,2,"#8999b5");}
+ // far mountains
  for(let i=0;i<10;i++){let x=i*150-(cam*.22%150);ctx.fillStyle=i%2?"#1b2939":"#182436";ctx.beginPath();ctx.moveTo(x,420);ctx.lineTo(x+75,220+(i%3)*25);ctx.lineTo(x+170,420);ctx.fill();}
 }
 function drawWorld(cam){
+ // ground sections, leaving pits
  let start=Math.floor(cam/80)*80;
  for(let x=start;x<cam+W+80;x+=80){
   const center=x+40;
@@ -216,12 +224,15 @@ function drawWorld(cam){
   }
  }
  platforms().forEach(p=>{rect(p.x-cam,p.y,p.w,p.h,"#46505f");rect(p.x-cam,p.y,p.w,4,"#87919e");for(let x=8;x<p.w;x+=24)rect(p.x-cam+x,p.y+7,10,3,"#303a49");});
+ // spikes near pit edges
  world.pits.forEach(p=>{for(let x=p[0]+4;x<p[1]-8;x+=16){ctx.fillStyle="#b84b62";ctx.beginPath();ctx.moveTo(x-cam,world.ground+8);ctx.lineTo(x+8-cam,world.ground-10);ctx.lineTo(x+16-cam,world.ground+8);ctx.fill();}});
+ // exit gate
  rect(world.goal-cam,world.ground-64,32,64,"#7c3aed");rect(world.goal-cam+6,world.ground-56,20,56,"#c084fc");
  rect(world.goal-cam+11,world.ground-45,10,38,"#f5d0fe");
  coinsList.forEach(c=>{if(c.taken)return;let wob=Math.sin(performance.now()/180+c.x)*2;rect(c.x-cam-5,c.y-7+wob,10,14,"#f6bd45");rect(c.x-cam-2,c.y-5+wob,4,10,"#fff0a6");});
  enemies.forEach(e=>{if(!e.alive)return;const x=e.x-cam;rect(x+4,e.y+7,18,20,"#8195a8");rect(x,e.y+13,26,14,"#526779");rect(x+5,e.y+11,5,5,"#ff657a");rect(x+16,e.y+11,5,5,"#ff657a");rect(x+3,e.y+27,7,5,"#303b4a");rect(x+17,e.y+27,7,5,"#303b4a");});
  if(boss&&boss.alive){const x=boss.x-cam;rect(x+8,boss.y+12,46,56,boss.flash?"#fca5a5":"#5d2b63");rect(x,boss.y+28,62,36,boss.flash?"#fca5a5":"#3e234e");rect(x+10,boss.y+4,42,22,"#7e3d7b");rect(x+15,boss.y+15,9,7,"#ff5964");rect(x+39,boss.y+15,9,7,"#ff5964");rect(x+6,boss.y+65,14,11,"#29253b");rect(x+42,boss.y+65,14,11,"#29253b");}
+ // player shadow and pixel character
  const px=player.x-cam, py=player.y;
  ctx.globalAlpha=.25;rect(px-2,world.ground-4,28,4,"#000000");ctx.globalAlpha=1;
  if(invuln>0 && Math.floor(performance.now()/80)%2===0)ctx.globalAlpha=.4;
@@ -240,6 +251,7 @@ function draw(){
  if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*6);
  drawBackground(cam);drawWorld(cam);
  ctx.restore();
+ // overlay
  if(world.boss && boss && boss.alive){
   rect(W/2-150,18,300,14,"#291c2d");rect(W/2-147,21,294*(boss.hp/boss.maxHp),8,"#e45b75");
   text("BOSS",W/2,14,12,"#f5c8d4","center");
