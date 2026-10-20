@@ -44,20 +44,20 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
 .status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.stat em{font-style:normal;color:#c7a96b}
 .stage{position:relative;border:1px solid #514838;background:#050708;line-height:0}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
-.menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
+.menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
 @media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hud">
-    <div class="status"><span class="label">Sinh mệnh</span><div class="bar"><div class="bar-fill" id="healthbar"></div></div><div class="subbar"><div class="subfill" id="staminabar"></div></div></div>
+    <div class="status"><span class="label">Sinh mệnh · <span id="hptext">3 / 3</span></span><div class="bar"><div class="bar-fill" id="healthbar"></div></div><div class="subbar"><div class="subfill" id="staminabar"></div></div></div>
     <div class="stat"><small>KHU VỰC</small><b id="level">I · Rừng Tàn</b></div>
     <div class="right-stats"><div class="stat"><small>LINH HỒN</small><b><em id="coins">◈ 0</em></b></div><div class="stat"><small>KỶ LỤC</small><b id="best">0</b></div></div>
   </div>
   <div class="stage">
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
-    <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
+    <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><div class="eyebrow">CHỌN ĐỘ KHÓ</div><div class="difficulty"><button class="diff-btn" data-diff="easy">DỄ</button><button class="diff-btn active" data-diff="normal">TRUNG BÌNH</button><button class="diff-btn" data-diff="hard">KHÓ</button></div><div class="diff-desc" id="diffdesc">Thử thách cân bằng, phù hợp để làm quen.</div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
   </div>
   <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
@@ -70,6 +70,8 @@ ctx.imageSmoothingEnabled = false;
 const W = canvas.width, H = canvas.height;
 const keys = {};
 let audioOn = true, audioCtx = null, lastTime = 0, gameOver = false, victory = false, started = false;
+let difficulty = "normal";
+const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh và bẫy nghỉ ngắn hơn."}};
 let score = 0, coins = 0, levelIndex = 0, attackTimer = 0, invuln = 0, shake = 0;
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
@@ -101,11 +103,11 @@ let world, player, enemies, coinsList, particles, boss, traps;
 function makeWorld(index) {
  const d = levels[index];
  world = d;
- player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:3,anim:0};
- enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55,alive:true,home:x,range:75,hp:1}));
+ player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:difficultySettings[difficulty].hp,maxHp:difficultySettings[difficulty].hp,anim:0};
+ enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55*difficultySettings[difficulty].enemy,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
- traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,pauseTimer:(t.type==="boulder"?(t.pause||6)*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0}));
+ traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -382,7 +384,8 @@ function draw(){
   text("Điểm: "+score+"     •     Xu: "+coins,W/2,H/2+14,17,"#f6eaff","center");
   text("NHẤN R ĐỂ CHƠI LẠI",W/2,H/2+52,13,"#b8c5e8","center");
  }
- document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/3*100)+"%";
+ document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
+ document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
  document.getElementById("coins").textContent="◈ "+coins+"  ·  "+score;
  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
@@ -390,7 +393,8 @@ function draw(){
 }
 function loop(t){const dt=(t-lastTime)/1000||0;lastTime=t;update(dt);draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-document.getElementById("startbtn").addEventListener("click",()=>{started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();beep(330,.08,"triangle",.025);});
+document.querySelectorAll(".diff-btn").forEach(btn=>btn.addEventListener("click",()=>{difficulty=btn.dataset.diff;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b===btn));document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;makeWorld(levelIndex); }));
+document.getElementById("startbtn").addEventListener("click",()=>{makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();beep(330,.08,"triangle",.025);});
 canvas.addEventListener("pointerdown",()=>{canvas.focus();});
 window.addEventListener("keydown",e=>{
  const k=e.key;
