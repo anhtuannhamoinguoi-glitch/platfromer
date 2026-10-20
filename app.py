@@ -483,6 +483,31 @@ function drawWorld(cam){
     }
    } else if(pts.length>1){const a=pts[0],b=pts[1];ctx.save();ctx.strokeStyle="#ff526e";ctx.lineWidth=2;ctx.globalAlpha=.25;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();ctx.restore();}
   }
+  // Countdown badge for every trap: tells the player when danger starts or ends.
+  let timerLabel="", timerX=t.x-cam, timerY=world.ground-105, timerColor="#fbbf24";
+  if(t.type==="boulder"){
+   if(t.state==="rest"){timerLabel="ĐÁ RƠI: "+Math.max(0,Math.ceil(t.pauseTimer))+"s";timerY=42;timerColor="#f4c27a";}
+   else if(t.state==="drop"){timerLabel="ĐANG RƠI!";timerY=Math.max(24,t.y-22);timerColor="#ff6868";}
+   else {timerLabel="ĐÁ ĐÃ RƠI";timerY=world.ground-(t.size||112)-24;timerColor="#c4b5a5";}
+  } else if(t.type==="fire"){
+   if(t.flameOn){timerLabel="LỬA TẮT: "+Math.max(0,(t.active-t.phase)).toFixed(1)+"s";timerColor="#ff7b45";}
+   else {timerLabel="LỬA SAU: "+Math.max(0,(t.period-t.phase)).toFixed(1)+"s";timerColor="#fbbf24";}
+   timerY=world.ground-(t.flameHeight||78)-27;
+  } else if(t.type==="laser"){
+   const period=t.period/(difficulty==="hard"?1.2:difficulty==="easy"?0.88:1);
+   const active=t.active*(difficulty==="hard"?1.18:difficulty==="easy"?0.78:1);
+   if(t.laserOn){timerLabel="LASER TẮT: "+Math.max(0,(active-t.laserPhase)).toFixed(1)+"s";timerColor="#ff657f";}
+   else {timerLabel="LASER SAU: "+Math.max(0,(period-t.laserPhase)).toFixed(1)+"s";timerColor="#ffd166";}
+   timerY=(t.points&&t.points.length?t.points[0][1]:240)-27;
+  }
+  if(timerLabel){
+   ctx.save();ctx.font="bold 11px Courier New, monospace";ctx.textAlign="center";
+   const tw=ctx.measureText(timerLabel).width, bw=tw+14, bh=19;
+   timerX=Math.max(bw/2+2,Math.min(W-bw/2-2,timerX));timerY=Math.max(15,Math.min(H-24,timerY));
+   ctx.fillStyle="#080a10";ctx.globalAlpha=.88;ctx.fillRect(timerX-bw/2,timerY-bh/2,bw,bh);ctx.globalAlpha=1;
+   ctx.strokeStyle=timerColor;ctx.lineWidth=1;ctx.strokeRect(timerX-bw/2,timerY-bh/2,bw,bh);
+   ctx.fillStyle=timerColor;ctx.fillText(timerLabel,timerX,timerY+4);ctx.restore();
+  }
  });
  // exit portal
  const gx=world.goal-cam, gy=world.ground-69, pulse=.7+.3*Math.sin(performance.now()/190);
