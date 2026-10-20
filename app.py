@@ -45,7 +45,8 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
 .stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
-@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}}
+.shop-item{padding:11px 8px;background:linear-gradient(160deg,#211b2c,#100f19);border:1px solid #65503c;box-shadow:inset 0 0 18px #a855f711;text-align:center;line-height:1.45;display:flex;flex-direction:column;align-items:center;gap:7px}.shop-item b{font-size:11px;letter-spacing:.5px;color:#f0dfbd}.shop-item p{font-size:10px;color:#aaa2b7;min-height:30px;margin:0}.shop-item small{font-size:10px;color:#e5bd70}.shop-icon{font-size:28px;color:#e6c47e;text-shadow:0 0 14px #e6c47e66}.buy-btn{padding:9px 6px;margin-top:auto;font-size:10px;letter-spacing:1px}.buy-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
+@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
 </style>
 </head>
 <body>
@@ -58,6 +59,23 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
   <div class="stage">
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
     <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><div class="eyebrow">CHỌN ĐỘ KHÓ</div><div class="difficulty"><button class="diff-btn" data-diff="easy">DỄ</button><button class="diff-btn active" data-diff="normal">TRUNG BÌNH</button><button class="diff-btn" data-diff="hard">KHÓ</button></div><div class="diff-desc" id="diffdesc">Thử thách cân bằng, phù hợp để làm quen.</div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
+    <div class="menu" id="shopmenu" style="display:none;background:rgba(4,5,12,.93);">
+      <div class="menu-card" style="width:min(760px,94%);border-left-color:#e0b45f;background:linear-gradient(110deg,rgba(15,12,25,.98),rgba(25,16,35,.96));">
+        <div class="eyebrow">THE FORGOTTEN MERCHANT</div>
+        <div class="menu-title" style="font-size:clamp(22px,3vw,34px);">KẺ BUÔN LINH HỒN</div>
+        <div class="menu-sub">MUA VẬT PHẨM TRƯỚC KHI BƯỚC VÀO VÙNG ĐẤT TIẾP THEO</div>
+        <div class="rule"></div>
+        <div style="font-size:12px;color:#e8d6aa;margin-bottom:8px;">◈ LINH HỒN: <b id="shopcoins">0</b>　 ·　 ĐIỂM: <b id="shopscore">0</b></div>
+        <div class="shop-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;">
+          <div class="shop-item"><div class="shop-icon">✚</div><b>THÊM SINH MỆNH</b><p>+1 máu tối đa, hồi thêm 1 máu.</p><small id="hpprice">Giá: 25 linh hồn</small><button class="start-btn buy-btn" data-item="hp">MUA</button></div>
+          <div class="shop-item"><div class="shop-icon">⚔</div><b>LƯỠI KIẾM CƯỜNG HÓA</b><p>Đòn đánh gây thêm sát thương lên boss.</p><small id="dmgprice">Giá: 35 linh hồn</small><button class="start-btn buy-btn" data-item="damage">MUA</button></div>
+          <div class="shop-item"><div class="shop-icon">➤</div><b>BƯỚC CHÂN BÓNG TỐI</b><p>Tăng tốc độ di chuyển.</p><small id="spdprice">Giá: 20 linh hồn</small><button class="start-btn buy-btn" data-item="speed">MUA</button></div>
+        </div>
+        <div id="shopmessage" style="min-height:18px;font-size:11px;color:#e9c979;margin:8px 0;">Chọn vật phẩm để chuẩn bị cho chặng tiếp theo.</div>
+        <button class="start-btn" id="continuebtn">TIẾP TỤC HÀNH TRÌNH →</button>
+        <div class="menu-note">Vật phẩm đã mua được giữ trong suốt lượt chơi hiện tại.</div>
+      </div>
+    </div>
   </div>
   <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
@@ -73,6 +91,8 @@ let audioOn = true, audioCtx = null, lastTime = 0, gameOver = false, victory = f
 let difficulty = "normal";
 const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh; lửa phun ở nhiều độ cao khác nhau."}};
 let score = 0, coins = 0, levelIndex = 0, attackTimer = 0, invuln = 0, shake = 0;
+let shopOpen = false, shopMessage = "";
+let shopUpgrades = {hp:0, damage:0, speed:0};
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
 const bestEl = document.getElementById("best");
@@ -150,14 +170,43 @@ function damage(amount=1){
 function attack(){
  if(!started || attackTimer>0 || gameOver || victory) return;
  attackTimer=.22; beep(240,.07,"square",.04);
- const range={x:player.face>0?player.x+player.w:player.x-28,y:player.y+5,w:30,h:25};
+ const range={x:player.face>0?player.x+player.w:player.x-28,y:player.y+5,w:30+shopUpgrades.damage*4,h:25};
  enemies.forEach(e=>{if(e.alive && hit(range,e)){e.alive=false;score+=100;addParticles(e.x+13,e.y+12,"#a9c6d9",12);beep(620,.09);}});
- if(boss && boss.alive && hit(range,boss)){boss.hp--;boss.flash=.18;score+=25;addParticles(boss.x+boss.w/2,boss.y+25,"#fca5a5",8);beep(170,.08,"sawtooth",.05);if(boss.hp<=0){boss.alive=false;score+=1000;addParticles(boss.x+30,boss.y+30,"#e879f9",30);}}
+ if(boss && boss.alive && hit(range,boss)){boss.hp-=1+shopUpgrades.damage;boss.flash=.18;score+=25;addParticles(boss.x+boss.w/2,boss.y+25,"#fca5a5",8);beep(170,.08,"sawtooth",.05);if(boss.hp<=0){boss.alive=false;score+=1000;addParticles(boss.x+30,boss.y+30,"#e879f9",30);}}
 }
-function resetGame(){score=0;coins=0;levelIndex=0;makeWorld(0);beep(500,.08);}
+function resetGame(){score=0;coins=0;levelIndex=0;shopOpen=false;shopUpgrades={hp:0,damage:0,speed:0};document.getElementById("shopmenu").style.display="none";makeWorld(0);beep(500,.08);}
 function nextLevel(){
- if(levelIndex<levels.length-1){levelIndex++;makeWorld(levelIndex);beep(700,.1);setTimeout(()=>beep(900,.1),110);}
- else {victory=true;score+=500;saveBest();}
+ if(levelIndex<levels.length-1){
+  levelIndex++;shopOpen=true;
+  document.getElementById("shopmenu").style.display="flex";
+  updateShopUI();beep(700,.1);setTimeout(()=>beep(900,.1),110);
+ } else {victory=true;score+=500;saveBest();}
+}
+function shopCost(item){
+ const base={hp:25,damage:35,speed:20}[item];
+ const step={hp:20,damage:25,speed:15}[item];
+ return base+shopUpgrades[item]*step;
+}
+function updateShopUI(){
+ document.getElementById("shopcoins").textContent=coins;
+ document.getElementById("shopscore").textContent=score;
+ document.getElementById("hpprice").textContent="Giá: "+shopCost("hp")+" linh hồn";
+ document.getElementById("dmgprice").textContent="Giá: "+shopCost("damage")+" linh hồn";
+ document.getElementById("spdprice").textContent="Giá: "+shopCost("speed")+" linh hồn";
+ document.querySelectorAll(".buy-btn").forEach(btn=>{
+  const cost=shopCost(btn.dataset.item);
+  btn.disabled=coins<cost;
+  btn.textContent=coins<cost?"CHƯA ĐỦ XU":"MUA · "+cost+" ◈";
+ });
+ document.getElementById("shopmessage").textContent=shopMessage||"Chọn vật phẩm để chuẩn bị cho chặng tiếp theo.";
+}
+function buyItem(item){
+ const cost=shopCost(item);
+ if(coins<cost){shopMessage="Bạn chưa có đủ linh hồn để mua vật phẩm này.";beep(110,.1,"square");updateShopUI();return;}
+ coins-=cost;shopUpgrades[item]++;
+ if(item==="hp"){player.maxHp++;player.hp=Math.min(player.maxHp,player.hp+1);}
+ shopMessage=({hp:"Sinh mệnh được tăng cường!",damage:"Lưỡi kiếm phát sáng mạnh hơn!",speed:"Bước chân bóng tối đã được nâng cấp!"})[item];
+ beep(740,.1,"triangle");updateShopUI();
 }
 function saveBest(){
  best=Math.max(best,score);
@@ -165,12 +214,12 @@ function saveBest(){
  bestEl.textContent="Kỷ lục: "+best;
 }
 function update(dt){
- if(!started || gameOver || victory) return;
+ if(!started || gameOver || victory || shopOpen) return;
  dt=Math.min(dt,.033);
  player.anim+=dt*10; attackTimer=Math.max(0,attackTimer-dt); invuln=Math.max(0,invuln-dt); shake=Math.max(0,shake-dt);
  const left=keys["ArrowLeft"]||keys["a"]||keys["A"], right=keys["ArrowRight"]||keys["d"]||keys["D"];
  const jump=keys[" "]||keys["ArrowUp"]||keys["w"]||keys["W"];
- const speed=220, accel=1500;
+ const speed=220+shopUpgrades.speed*24, accel=1500+shopUpgrades.speed*100;
  if(left){player.vx-=accel*dt;player.face=-1;} if(right){player.vx+=accel*dt;player.face=1;}
  if(!left&&!right) player.vx*=Math.pow(.0008,dt);
  player.vx=Math.max(-speed,Math.min(speed,player.vx));
@@ -189,7 +238,7 @@ function update(dt){
  }
  if(player.y>H+80){damage();if(player.hp>0){player.x=Math.max(40,player.x-120);player.y=250;player.vy=0;}}
  // collect coins
- coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins++;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);}});
+ coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins++;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
  // enemies
  enemies.forEach(e=>{
   if(!e.alive)return;
@@ -526,7 +575,12 @@ function draw(){
 function loop(t){const dt=(t-lastTime)/1000||0;lastTime=t;update(dt);draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 document.querySelectorAll(".diff-btn").forEach(btn=>btn.addEventListener("click",()=>{difficulty=btn.dataset.diff;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b===btn));document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;makeWorld(levelIndex); }));
-document.getElementById("startbtn").addEventListener("click",()=>{makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();beep(330,.08,"triangle",.025);});
+document.getElementById("startbtn").addEventListener("click",()=>{shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();beep(330,.08,"triangle",.025);});
+document.querySelectorAll(".buy-btn").forEach(btn=>btn.addEventListener("click",()=>buyItem(btn.dataset.item)));
+document.getElementById("continuebtn").addEventListener("click",()=>{
+ shopOpen=false;document.getElementById("shopmenu").style.display="none";
+ makeWorld(levelIndex);player.hp=player.maxHp;started=true;canvas.focus();beep(420,.08,"triangle",.03);
+});
 canvas.addEventListener("pointerdown",()=>{canvas.focus();});
 window.addEventListener("keydown",e=>{
  const k=e.key;
