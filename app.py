@@ -59,7 +59,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
     <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
   </div>
-  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; CẨN THẬN ĐÁ LĂN / LỬA</div>
+  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ LĂN KHỔNG LỒ (NGHỈ LÂU RỒI LĂN) / LỬA</div>
 </div>
 <script>
 (() => {
@@ -82,19 +82,19 @@ const levels = [
   pits:[[390,455],[630,690],[880,930],[1110,1160],[1390,1440],[1660,1710],[1950,2010]],
   coinSpots:[[180,380],[290,315],[520,265],[760,325],[1010,275],[1260,315],[1540,255],[1810,305],[2050,385]],
   enemies:[330,780,1040,1570,1870],
-  traps:[{type:"boulder",x:560,start:500,end:760,damage:1.1},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
+  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
  {name:"Hầm Ngục", length:2600, start:70, goal:2470, ground:430,
   platforms:[[210,350,120],[430,300,130],[680,350,120],[900,285,130],[1160,340,140],[1430,290,130],[1680,350,130],[1940,280,130],[2190,340,120]],
   pits:[[360,410],[620,670],[850,890],[1100,1150],[1390,1420],[1640,1670],[1900,1930],[2150,2180]],
   coinSpots:[[150,380],[250,305],[470,255],[720,305],[950,240],[1200,295],[1480,245],[1730,305],[1990,235],[2250,295]],
   enemies:[300,740,1020,1510,1810,2250],
-  traps:[{type:"boulder",x:760,start:690,end:940,damage:1.25},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1770,start:1690,end:1900,damage:1.25}], boss:false},
+  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0}], boss:false},
  {name:"Đấu Trường", length:1800, start:70, goal:1680, ground:430,
   platforms:[[280,350,130],[540,300,130],[800,350,140],[1080,300,130],[1350,350,130]],
   pits:[[430,480],[700,750],[970,1020],[1240,1290]],
   coinSpots:[[180,380],[330,305],[590,255],[850,305],[1130,255],[1400,305],[1580,385]],
   enemies:[350,880],
-  traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:1040,start:990,end:1190,damage:1.3}], boss:true}
+  traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:990,start:950,end:1290,damage:1.35,size:120,speed:275,pause:5.5,rollTime:3.2}], boss:true}
 ];
 let world, player, enemies, coinsList, particles, boss, traps;
 
@@ -105,7 +105,7 @@ function makeWorld(index) {
  enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
- traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,hitCooldown:0}));
+ traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",pauseTimer:(t.type==="boulder"?(t.pause||5)*(0.45+Math.random()*0.45):0),rollTimer:0,hitCooldown:0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -207,10 +207,21 @@ function update(dt){
  traps.forEach(t=>{
   t.hitCooldown=Math.max(0,t.hitCooldown-dt);
   if(t.type==="boulder"){
-   t.x+=t.dir*105*dt;
-   if(t.x<t.start||t.x>t.end){t.dir*=-1;t.x=Math.max(t.start,Math.min(t.end,t.x));}
-   const b={x:t.x,y:world.ground-30,w:30,h:30};
-   if(hit(player,b)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.35;addParticles(t.x+15,world.ground-15,"#b8aaa0",12);}
+   // Huge boulder alternates between a long, readable rest and a short, dangerous roll.
+   const size=t.size||108;
+   if(t.state==="rest"){
+    t.pauseTimer-=dt;
+    if(t.pauseTimer<=0){t.state="roll";t.rollTimer=t.rollTime||3.0;beep(75,.22,"sawtooth",.045);addParticles(t.x+size/2,world.ground-4,"#9b9387",9);}
+   } else {
+    t.x+=t.dir*(t.speed||250)*dt;
+    t.rollTimer-=dt;
+    if(t.x<=t.start||t.x>=t.end||t.rollTimer<=0){
+     t.x=Math.max(t.start,Math.min(t.end,t.x));t.dir*=-1;t.state="rest";t.pauseTimer=t.pause||5.0;
+     addParticles(t.x+size/2,world.ground-5,"#b8aaa0",15);
+    }
+   }
+   const b={x:t.x+size*0.08,y:world.ground-size*0.94,w:size*0.84,h:size*0.94};
+   if(hit(player,b)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.35;addParticles(t.x+size/2,world.ground-size/2,"#b8aaa0",16);}
   } else if(t.type==="fire"){
    t.phase=(t.phase+dt)%t.period;
    t.flameOn=t.phase<t.active;
@@ -278,12 +289,31 @@ function drawWorld(cam){
  traps.forEach(t=>{
   const x=t.x-cam;
   if(t.type==="boulder"){
-   glow(x+15,world.ground-15,34,"#8e8277",.18);
-   rect(x+2,world.ground-29,26,26,"#575653");rect(x+6,world.ground-33,18,5,"#77736b");
-   rect(x+1,world.ground-21,7,9,"#3c3c3b");rect(x+13,world.ground-25,8,7,"#89847a");rect(x+17,world.ground-11,8,6,"#444340");
-   rect(x+5,world.ground-7,5,3,"#a49a8b");rect(x+22,world.ground-30,4,4,"#302f30");
-   // small motion marks communicate that the boulder is moving
-   if(Math.abs(t.dir)>0){rect(x-(t.dir>0?10:-10),world.ground-17,6,2,"#a49a8b");rect(x-(t.dir>0?17:-17),world.ground-10,4,2,"#77736b");}
+   const size=t.size||108, by=world.ground-size;
+   // Ground shadow and warning dust make the large hazard readable at a glance.
+   ctx.globalAlpha=.35;rect(x-8,world.ground-5,size+16,7,"#000000");ctx.globalAlpha=1;
+   glow(x+size/2,world.ground-size*.42,size*.72,t.state==="roll"?"#b4a18a":"#887b68",t.state==="roll"?.24:.10);
+   // Chunky pixel-rock silhouette, intentionally angular rather than a smooth circle.
+   rect(x+size*.22,by+size*.04,size*.54,size*.08,"#756e63");
+   rect(x+size*.12,by+size*.12,size*.76,size*.15,"#625e57");
+   rect(x+size*.06,by+size*.27,size*.88,size*.43,"#514f4b");
+   rect(x+size*.12,by+size*.70,size*.76,size*.17,"#3d3d3c");
+   rect(x+size*.24,by+size*.87,size*.52,size*.08,"#292c2d");
+   rect(x+size*.20,by+size*.17,size*.22,size*.14,"#8a8174");
+   rect(x+size*.56,by+size*.31,size*.20,size*.12,"#777166");
+   rect(x+size*.16,by+size*.49,size*.18,size*.11,"#393b3b");
+   rect(x+size*.48,by+size*.62,size*.25,size*.13,"#686258");
+   rect(x+size*.34,by+size*.38,size*.09,size*.18,"#353737");
+   rect(x+size*.72,by+size*.18,size*.08,size*.08,"#a09786");
+   // While resting, a subtle warning pulse signals that the boulder will soon move.
+   if(t.state==="rest"){
+    const pulse=.25+.25*Math.sin(performance.now()/180);
+    glow(x+size/2,world.ground-size*.48,size*.58,"#d4a66b",pulse*.32);
+    if(t.pauseTimer<1.2){rect(x+size*.42,by-9,size*.16,4,"#d6a35e");}
+   }else{
+    rect(x-size*.20,world.ground-size*.38,size*.13,4,"#aaa092");rect(x-size*.30,world.ground-size*.26,size*.09,3,"#77736b");
+    rect(x+size*1.04,world.ground-size*.32,size*.12,4,"#aaa092");
+   }
   } else {
    rect(x-17,world.ground-4,34,8,"#373b42");rect(x-12,world.ground-8,24,4,"#77736b");
    rect(x-5,world.ground-12,10,4,"#c06b39");
