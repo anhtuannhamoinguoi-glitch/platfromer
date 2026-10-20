@@ -45,6 +45,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
 .stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
+.save-panel{padding:10px 8px;margin-top:9px;border:1px solid #494438;background:linear-gradient(120deg,#10131a,#17121c);color:#cfc5ad;font-size:11px;line-height:1.4}.save-title{font-size:11px;letter-spacing:2px;color:#e3c47f;margin-bottom:8px}.save-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.save-slot{padding:8px;border:1px solid #514838;background:#0b0e12;text-align:center}.save-slot b{display:block;color:#e3d8c2;font-size:11px;margin-bottom:5px}.save-status{display:block;min-height:26px;color:#8e9b9d;font-size:9px;margin:5px 0}.save-actions{display:flex;gap:5px}.save-btn{flex:1;padding:7px 4px;border:1px solid #76613d;background:#252019;color:#e9d9b8;font:600 9px Georgia,serif;cursor:pointer;letter-spacing:.4px}.save-btn:hover:not(:disabled){background:#483222}.save-btn:disabled{opacity:.35;cursor:not-allowed}.save-note{color:#8f918d;font-size:9px;margin-top:8px}@media(max-width:600px){.save-grid{grid-template-columns:1fr}.save-slot{display:grid;grid-template-columns:1fr;}.save-status{min-height:0}}
 .shop-item{padding:11px 8px;background:linear-gradient(160deg,#211b2c,#100f19);border:1px solid #65503c;box-shadow:inset 0 0 18px #a855f711;text-align:center;line-height:1.45;display:flex;flex-direction:column;align-items:center;gap:7px}.shop-item b{font-size:11px;letter-spacing:.5px;color:#f0dfbd}.shop-item p{font-size:10px;color:#aaa2b7;min-height:30px;margin:0}.shop-item small{font-size:10px;color:#e5bd70}.shop-icon{font-size:28px;color:#e6c47e;text-shadow:0 0 14px #e6c47e66}.buy-btn{padding:9px 6px;margin-top:auto;font-size:10px;letter-spacing:1px}.buy-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
 @media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
 </style>
@@ -76,6 +77,15 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
         <div class="menu-note">Vật phẩm đã mua được giữ trong suốt lượt chơi hiện tại.</div>
       </div>
     </div>
+  </div>
+  <div class="save-panel">
+    <div class="save-title">✦ LƯU / TẢI TIẾN TRÌNH TỪNG MÀN ✦</div>
+    <div class="save-grid">
+      <div class="save-slot"><b>I · RỪNG TÀN</b><span class="save-status" id="save-status-0">Chưa có dữ liệu lưu</span><div class="save-actions"><button class="save-btn" data-save="0">LƯU MÀN I</button><button class="save-btn" data-load="0">TẢI MÀN I</button></div></div>
+      <div class="save-slot"><b>II · HẦM NGỤC</b><span class="save-status" id="save-status-1">Chưa có dữ liệu lưu</span><div class="save-actions"><button class="save-btn" data-save="1">LƯU MÀN II</button><button class="save-btn" data-load="1">TẢI MÀN II</button></div></div>
+      <div class="save-slot"><b>III · ĐẤU TRƯỜNG</b><span class="save-status" id="save-status-2">Chưa có dữ liệu lưu</span><div class="save-actions"><button class="save-btn" data-save="2">LƯU MÀN III</button><button class="save-btn" data-load="2">TẢI MÀN III</button></div></div>
+    </div>
+    <div class="save-note" id="save-message">Mỗi màn có một ô lưu riêng. Dữ liệu được lưu trong trình duyệt trên thiết bị hiện tại.</div>
   </div>
   <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
@@ -213,6 +223,54 @@ function saveBest(){
  try{localStorage.setItem("shadowbound_best",String(best));}catch(e){}
  bestEl.textContent="Kỷ lục: "+best;
 }
+const saveKey = index => "shadowbound_save_level_" + index;
+function refreshSaveSlots(){
+ for(let i=0;i<levels.length;i++){
+  const status=document.getElementById("save-status-"+i);
+  const loadBtn=document.querySelector('[data-load="'+i+'"]');
+  let data=null;
+  try{data=JSON.parse(localStorage.getItem(saveKey(i))||"null");}catch(e){}
+  if(data && data.savedAt){
+   const date=new Date(data.savedAt);
+   status.textContent="Đã lưu · "+date.toLocaleDateString("vi-VN")+" "+date.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})+" · "+Math.max(0,Math.floor(data.score||0))+" điểm";
+   loadBtn.disabled=false;
+  }else{status.textContent="Chưa có dữ liệu lưu";loadBtn.disabled=true;}
+ }
+}
+function saveLevelSlot(index){
+ if(!started || shopOpen || gameOver || victory || index!==levelIndex){
+  document.getElementById("save-message").textContent="Bạn chỉ có thể lưu ô của màn đang chơi. Hãy vào màn đó và đóng cửa hàng trước khi lưu.";
+  beep(130,.1,"square");return;
+ }
+ try{
+  const data={version:1,savedAt:Date.now(),levelIndex:index,difficulty,score,coins,shopUpgrades,
+   player:JSON.parse(JSON.stringify(player)),enemies:JSON.parse(JSON.stringify(enemies)),coinsList:JSON.parse(JSON.stringify(coinsList)),
+   boss:boss?JSON.parse(JSON.stringify(boss)):null,traps:JSON.parse(JSON.stringify(traps)),started:true};
+  localStorage.setItem(saveKey(index),JSON.stringify(data));
+  document.getElementById("save-message").textContent="Đã lưu tiến trình màn "+(index+1)+" ("+levels[index].name+") thành công.";
+  refreshSaveSlots();beep(760,.1,"triangle");
+ }catch(e){document.getElementById("save-message").textContent="Không lưu được. Trình duyệt có thể đang chặn bộ nhớ cục bộ.";}
+}
+function loadLevelSlot(index){
+ let data=null;
+ try{data=JSON.parse(localStorage.getItem(saveKey(index))||"null");}catch(e){}
+ if(!data || data.levelIndex!==index){document.getElementById("save-message").textContent="Ô lưu màn này đang trống hoặc dữ liệu không hợp lệ.";return;}
+ try{
+  difficulty=data.difficulty||"normal";
+  document.querySelectorAll(".diff-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.diff===difficulty));
+  document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;
+  levelIndex=index;makeWorld(index);
+  player=data.player;enemies=data.enemies;coinsList=data.coinsList;boss=data.boss;traps=data.traps;
+  score=data.score||0;coins=data.coins||0;shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};
+  started=true;gameOver=false;victory=false;shopOpen=false;attackTimer=0;invuln=0;shake=0;
+  document.getElementById("mainmenu").style.display="none";
+  document.getElementById("shopmenu").style.display="none";
+  document.getElementById("save-message").textContent="Đã tải tiến trình màn "+(index+1)+" ("+levels[index].name+").";
+  canvas.focus();refreshSaveSlots();beep(560,.1,"triangle");
+ }catch(e){document.getElementById("save-message").textContent="Không thể tải ô lưu này. Hãy thử lưu lại màn chơi.";}
+}
+document.querySelectorAll("[data-save]").forEach(btn=>btn.addEventListener("click",()=>saveLevelSlot(Number(btn.dataset.save))));
+document.querySelectorAll("[data-load]").forEach(btn=>btn.addEventListener("click",()=>loadLevelSlot(Number(btn.dataset.load))));
 function update(dt){
  if(!started || gameOver || victory || shopOpen) return;
  dt=Math.min(dt,.033);
@@ -616,6 +674,7 @@ window.addEventListener("keydown",e=>{
  if((k==="r"||k==="R")&&(gameOver||victory))resetGame();
 });
 window.addEventListener("keyup",e=>{keys[e.key]=false;});
+refreshSaveSlots();
 canvas.focus();
 })();
 </script>
@@ -623,7 +682,7 @@ canvas.focus();
 </html>
 """
 
-components.html(game_html, height=650, scrolling=False)
+components.html(game_html, height=820, scrolling=False)
 
 st.markdown("---")
 st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
@@ -633,6 +692,6 @@ st.markdown(
     - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
     - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá, viền điện ảnh và hào quang nhân vật.
-    - Điểm cao nhất được lưu trên trình duyệt của bạn. Đây là lưu cục bộ trên thiết bị hiện tại, chưa phải tài khoản đồng bộ giữa nhiều máy.
+    - Có 3 ô lưu riêng cho từng màn; bạn có thể lưu và tải lại vị trí, máu, quái, bẫy, xu, điểm và vật phẩm đã nâng cấp. Dữ liệu lưu trong trình duyệt trên thiết bị hiện tại, chưa đồng bộ giữa nhiều máy.
     """
 )
