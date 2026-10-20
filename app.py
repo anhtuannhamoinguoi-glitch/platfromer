@@ -71,7 +71,7 @@ const W = canvas.width, H = canvas.height;
 const keys = {};
 let audioOn = true, audioCtx = null, lastTime = 0, gameOver = false, victory = false, started = false;
 let difficulty = "normal";
-const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh và bẫy nghỉ ngắn hơn."}};
+const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh; lửa phun ở nhiều độ cao khác nhau."}};
 let score = 0, coins = 0, levelIndex = 0, attackTimer = 0, invuln = 0, shake = 0;
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
@@ -107,7 +107,7 @@ function makeWorld(index) {
  enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55*difficultySettings[difficulty].enemy,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
- traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0}));
+ traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -231,7 +231,8 @@ function update(dt){
   } else if(t.type==="fire"){
    t.phase=(t.phase+dt)%t.period;
    t.flameOn=t.phase<t.active;
-   const flame={x:t.x-12,y:world.ground-78,w:24,h:78};
+   const flameH=t.flameHeight||78;
+   const flame={x:t.x-14,y:world.ground-flameH,w:28,h:flameH};
    if(t.flameOn&&hit(player,flame)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.3;addParticles(t.x,world.ground-45,"#ff8738",10);beep(95,.12,"sawtooth",.045);}
   }
  });
@@ -326,7 +327,17 @@ function drawWorld(cam){
    rect(x-17,world.ground-4,34,8,"#373b42");rect(x-12,world.ground-8,24,4,"#77736b");
    rect(x-5,world.ground-12,10,4,"#c06b39");
    const warning=t.phase>t.active-.35;
-   if(t.flameOn){glow(x,world.ground-43,37,"#ff5a22",.45);rect(x-9,world.ground-18,18,12,"#f06a2b");rect(x-6,world.ground-34,12,18,"#ff9c36");rect(x-3,world.ground-49,6,17,"#ffd47b");rect(x-2,world.ground-57,4,8,"#fff0b5");}
+   if(t.flameOn){
+    const fh=t.flameHeight||78;
+    glow(x,world.ground-fh*.58,Math.max(28,fh*.48),"#ff5a22",.45);
+    rect(x-9,world.ground-18,18,12,"#f06a2b");
+    // Build the flame upward in pixel tiers; on HARD each vent has a different height.
+    for(let yy=world.ground-24, tier=0; yy>world.ground-fh; yy-=14,tier++){
+     const width=Math.max(4,18-tier*2+(tier%2?2:0));
+     rect(x-width/2,yy,width,14,tier%2?"#ff9c36":"#ffd47b");
+     if(width>7)rect(x-2,yy+3,4,Math.min(8,14),"#fff0b5");
+    }
+   }
    else if(warning){glow(x,world.ground-12,20,"#ff5a22",.18);rect(x-3,world.ground-17,6,4,"#ff9c36");}
   }
  });
