@@ -377,7 +377,86 @@ function glow(x,y,r,color,alpha=1){
  const g=ctx.createRadialGradient(x,y,1,x,y,r);g.addColorStop(0,color);g.addColorStop(1,"rgba(0,0,0,0)");
  ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.restore();
 }
+function drawDungeonBackground(cam){
+ // MÀN II — HẦM NGỤC: trần đá thấp, tường cổ, cột nứt và dòng dung nham.
+ const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#080e16");g.addColorStop(.55,"#18252c");g.addColorStop(1,"#351c1d");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ glow(180-cam*.025,345,220,"#ff4d24",.15);glow(700-cam*.018,390,250,"#e23c22",.12);
+ // Distant rock layers
+ for(let layer=0;layer<3;layer++){
+  const par=.06+layer*.07, base=layer===0?250:layer===1?320:390, color=["#111b25","#17232b","#202a2c"][layer];
+  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,base);
+  for(let x=0;x<=W+80;x+=55){const y=base+Math.sin((x+cam*par)*.018+layer)*17+((Math.floor(x/55)*17)%23);ctx.lineTo(x,y);}
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+ }
+ // Massive masonry blocks scrolling at different depths
+ for(let i=-1;i<12;i++){
+  const x=((i*105-cam*.13)%(W+105)+(W+105))%(W+105)-40;
+  const y=55+(i%3)*48;
+  rect(x,y,78,38,"#26343a");rect(x+3,y+3,72,31,"#1b272e");rect(x+8,y+7,24,3,"#35434a");
+  rect(x+78,y+15,27,4,"#0b1319");
+ }
+ // Heavy pillars, broken capitals, and hanging chains
+ for(let i=-1;i<7;i++){
+  const x=((i*175-cam*.22)%(W+175)+(W+175))%(W+175)-20;
+  const top=95+(i%2)*35;
+  rect(x,top,30,world?world.ground-top:335,"#29363b");rect(x+5,top,5,world?world.ground-top:335,"#3a4547");
+  rect(x-8,top-8,46,12,"#465052");rect(x-3,top-13,36,5,"#657071");
+  rect(x+12,top+35,3,45,"#172127");rect(x+10,top+80,7,3,"#586163");
+  ctx.strokeStyle="#4a5353";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+55,0);ctx.lineTo(x+55,35+(i%4)*18);ctx.stroke();
+ }
+ // Glowing lava fissures in the far depth
+ for(let i=0;i<8;i++){
+  const x=((i*137-cam*.19)%(W+137)+(W+137))%(W+137);
+  glow(x,398,45,"#ff4b20",.25);rect(x-13,394,28,3,"#ff6530");rect(x-5,389,4,5,"#ffb15c");
+ }
+ // Drifting ash
+ for(let i=0;i<42;i++){
+  const x=((i*83+performance.now()*.012*(i%3+1)-cam*.08)%(W+30)+(W+30))%(W+30)-10;
+  const y=(i*47+performance.now()*.018*(i%2+1))%(H-45);
+  rect(x,y,i%5===0?3:2,2,i%4===0?"#ff9b62":"#849093");
+ }
+}
+function drawArenaBackground(cam){
+ // MÀN III — ĐẤU TRƯỜNG: bầu trời đỏ thẫm, nguyệt thực, khán đài và cột đá đổ nát.
+ const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#100b1b");g.addColorStop(.48,"#351725");g.addColorStop(1,"#642b25");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ const pulse=.8+.2*Math.sin(performance.now()*.001);
+ glow(690,125,165,"#f0444e",.24*pulse);glow(690,125,82,"#e3a17b",.18);
+ // Blood moon / eclipse
+ ctx.fillStyle="#27131f";ctx.beginPath();ctx.arc(690,125,58,0,Math.PI*2);ctx.fill();ctx.fillStyle="#c45a58";ctx.beginPath();ctx.arc(690,125,47,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#5e2836";ctx.fillRect(655,97,20,7);ctx.fillRect(685,133,28,8);ctx.fillRect(708,110,12,5);
+ // Tiered arena stands and tiny torch lights
+ for(let row=0;row<4;row++){
+  const y=235+row*34;ctx.fillStyle=["#241522","#301927","#3b2029","#48262b"][row];
+  ctx.beginPath();ctx.moveTo(0,y+22);ctx.lineTo(W,y-10);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+  for(let i=0;i<18;i++){
+   const x=((i*61-row*17-cam*(.035+row*.02))%(W+20)+(W+20))%(W+20);
+   rect(x,y+(i%3)*4,3,4,(i+row)%4===0?"#ffb65f":(i%2?"#a64d54":"#70404d"));
+  }
+ }
+ // Ancient arena arches and cracked pillars
+ for(let i=-1;i<7;i++){
+  const x=((i*170-cam*.16)%(W+170)+(W+170))%(W+170)-15;
+  const h=125+(i%3)*32, y=world?world.ground-h:430-h;
+  rect(x,y,27,h,"#3b3039");rect(x+5,y+5,5,h-8,"#55404a");rect(x-9,y-10,45,13,"#67505a");
+  rect(x-4,y-15,35,5,"#927078");rect(x+13,y+Math.floor(h*.45),4,23,"#261b27");
+  if(i%2===0){rect(x+31,y+35,20,5,"#6e3844");rect(x+47,y+40,4,27,"#7c303d");}
+ }
+ // Torn crimson banners and sparks
+ for(let i=0;i<6;i++){
+  const x=((i*145-cam*.24)%(W+145)+(W+145))%(W+145);
+  rect(x,75,3,68,"#8e7470");rect(x+3,80,27,24,"#8e263a");rect(x+3,104,20,14,"#681b31");
+  ctx.fillStyle="#b8424e";ctx.beginPath();ctx.moveTo(x+3,118);ctx.lineTo(x+13,112);ctx.lineTo(x+21,122);ctx.lineTo(x+30,116);ctx.lineTo(x+30,129);ctx.lineTo(x+3,129);ctx.closePath();ctx.fill();
+ }
+ for(let i=0;i<30;i++){
+  const x=((i*97+performance.now()*.016*(i%3+1)-cam*.1)%(W+20)+(W+20))%(W+20);
+  const y=(i*53-performance.now()*.025*(i%2+1)+H)%(H-35);
+  glow(x,y,9,"#ff5c45",.18);rect(x,y,2,3,i%3===0?"#ffd17a":"#e96b52");
+ }
+}
 function drawBackground(cam){
+ if(levelIndex===1){drawDungeonBackground(cam);return;}
+ if(levelIndex===2){drawArenaBackground(cam);return;}
+ // MÀN I — RỪNG TÀN: bầu trời tím, trăng lạnh và rừng ma ám.
  // Night sky with a soft violet horizon
  const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,"#090d1d");sky.addColorStop(.55,"#171b35");sky.addColorStop(1,"#34213e");ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
  // Cinematic aurora ribbons and distant shafts of moonlight.
@@ -428,21 +507,27 @@ function drawWorld(cam){
  for(let x=start;x<cam+W+80;x+=80){
   const center=x+40;
   if(!world.pits.some(p=>center>p[0]&&center<p[1])){
-   rect(x-cam,world.ground,80,H-world.ground,"#1d2c31");
-   rect(x-cam,world.ground,80,6,"#6a9a70");rect(x-cam,world.ground+6,80,3,"#354f4a");
-   for(let k=0;k<9;k++){const xx=x-cam+(k*19)%76,yy=world.ground+16+(k*23)%88;rect(xx,yy,4+(k%3),3,k%2?"#2b4140":"#142329");}
-   // little grass blades along the edge
-   for(let k=0;k<5;k++){let gx=x-cam+k*17+5;rect(gx,world.ground-3,2,5,k%2?"#9bc58a":"#507f69");}
+   const floorBase=levelIndex===0?"#1d2c31":levelIndex===1?"#292d32":"#39272d";
+   const floorTop=levelIndex===0?"#6a9a70":levelIndex===1?"#68777a":"#bd6252";
+   const floorEdge=levelIndex===0?"#354f4a":levelIndex===1?"#414b50":"#6d393e";
+   rect(x-cam,world.ground,80,H-world.ground,floorBase);
+   rect(x-cam,world.ground,80,6,floorTop);rect(x-cam,world.ground+6,80,3,floorEdge);
+   for(let k=0;k<9;k++){const xx=x-cam+(k*19)%76,yy=world.ground+16+(k*23)%88;rect(xx,yy,4+(k%3),3,levelIndex===0?(k%2?"#2b4140":"#142329"):levelIndex===1?(k%2?"#343a3e":"#171e23"):(k%2?"#573038":"#251b24"));}
+   // Forest grass, dungeon rubble, or arena ash along the floor edge.
+   for(let k=0;k<5;k++){let gx=x-cam+k*17+5;if(levelIndex===0)rect(gx,world.ground-3,2,5,k%2?"#9bc58a":"#507f69");else if(levelIndex===1){rect(gx,world.ground-3,4,3,"#727b7c");rect(gx+3,world.ground-5,2,2,"#3c484d");}else{rect(gx,world.ground-3,3,4,k%2?"#c76a57":"#78414a");}}
   }else{
-   rect(x-cam,world.ground+5,80,H-world.ground,"#05060c");glow(x-cam+40,world.ground+65,48,"#8f244f",.15);
-   rect(x-cam,world.ground+5,80,3,"#6c3455");
+   rect(x-cam,world.ground+5,80,H-world.ground,levelIndex===1?"#020508":"#10040c");glow(x-cam+40,world.ground+65,48,levelIndex===1?"#ff5428":"#f0444e",.15);
+   rect(x-cam,world.ground+5,80,3,levelIndex===1?"#8b4538":"#9a3b4b");
   }
  }
  // platforms with stone edges and pixel cracks
  platforms().forEach((p,i)=>{
-  rect(p.x-cam,p.y,p.w,p.h,"#33364d");rect(p.x-cam,p.y,p.w,4,"#9d8bb7");rect(p.x-cam,p.y+4,p.w,3,"#625675");
-  for(let x=9;x<p.w;x+=25){rect(p.x-cam+x,p.y+8,11,3,"#25293d");rect(p.x-cam+x+5,p.y+11,4,2,"#4b465e");}
-  for(let x=12;x<p.w;x+=47)rect(p.x-cam+x,p.y-3,3,3,"#b5a6cb");
+  const stoneBase=levelIndex===0?"#33364d":levelIndex===1?"#3b4549":"#49313d";
+  const stoneTop=levelIndex===0?"#9d8bb7":levelIndex===1?"#9aa3a0":"#d08a73";
+  const stoneEdge=levelIndex===0?"#625675":levelIndex===1?"#5b6669":"#80505a";
+  rect(p.x-cam,p.y,p.w,p.h,stoneBase);rect(p.x-cam,p.y,p.w,4,stoneTop);rect(p.x-cam,p.y+4,p.w,3,stoneEdge);
+  for(let x=9;x<p.w;x+=25){rect(p.x-cam+x,p.y+8,11,3,levelIndex===0?"#25293d":levelIndex===1?"#252d31":"#2d202b");rect(p.x-cam+x+5,p.y+11,4,2,levelIndex===0?"#4b465e":levelIndex===1?"#657071":"#a35c60");}
+  for(let x=12;x<p.w;x+=47)rect(p.x-cam+x,p.y-3,3,3,stoneTop);
  });
  // Ancient runes etched into selected platforms.
  platforms().forEach((p,i)=>{
