@@ -59,7 +59,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
     <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
   </div>
-  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI</div>
+  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; CẨN THẬN ĐÁ LĂN / LỬA</div>
 </div>
 <script>
 (() => {
@@ -81,19 +81,22 @@ const levels = [
   platforms:[[250,360,120],[470,310,120],[710,370,140],[960,320,120],[1210,360,140],[1490,300,130],[1770,350,130]],
   pits:[[390,455],[630,690],[880,930],[1110,1160],[1390,1440],[1660,1710],[1950,2010]],
   coinSpots:[[180,380],[290,315],[520,265],[760,325],[1010,275],[1260,315],[1540,255],[1810,305],[2050,385]],
-  enemies:[330,780,1040,1570,1870], boss:false},
+  enemies:[330,780,1040,1570,1870],
+  traps:[{type:"boulder",x:560,start:500,end:760,damage:1.1},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
  {name:"Hầm Ngục", length:2600, start:70, goal:2470, ground:430,
   platforms:[[210,350,120],[430,300,130],[680,350,120],[900,285,130],[1160,340,140],[1430,290,130],[1680,350,130],[1940,280,130],[2190,340,120]],
   pits:[[360,410],[620,670],[850,890],[1100,1150],[1390,1420],[1640,1670],[1900,1930],[2150,2180]],
   coinSpots:[[150,380],[250,305],[470,255],[720,305],[950,240],[1200,295],[1480,245],[1730,305],[1990,235],[2250,295]],
-  enemies:[300,740,1020,1510,1810,2250], boss:false},
+  enemies:[300,740,1020,1510,1810,2250],
+  traps:[{type:"boulder",x:760,start:690,end:940,damage:1.25},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1770,start:1690,end:1900,damage:1.25}], boss:false},
  {name:"Đấu Trường", length:1800, start:70, goal:1680, ground:430,
   platforms:[[280,350,130],[540,300,130],[800,350,140],[1080,300,130],[1350,350,130]],
   pits:[[430,480],[700,750],[970,1020],[1240,1290]],
   coinSpots:[[180,380],[330,305],[590,255],[850,305],[1130,255],[1400,305],[1580,385]],
-  enemies:[350,880], boss:true}
+  enemies:[350,880],
+  traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:1040,start:990,end:1190,damage:1.3}], boss:true}
 ];
-let world, player, enemies, coinsList, particles, boss;
+let world, player, enemies, coinsList, particles, boss, traps;
 
 function makeWorld(index) {
  const d = levels[index];
@@ -102,6 +105,7 @@ function makeWorld(index) {
  enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
+ traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,hitCooldown:0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -133,9 +137,9 @@ function floorAt(x){
  return world.ground;
 }
 function platforms(){return world.platforms.map(p=>({x:p[0],y:p[1],w:p[2],h:16}));}
-function damage(){
+function damage(amount=1){
  if(invuln>0 || gameOver || victory) return;
- player.hp--; invuln=1.25; shake=.25; noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
+ player.hp=Math.max(0,player.hp-amount); invuln=1.25; shake=.25; noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
  if(player.hp<=0){gameOver=true; beep(90,.5,"sawtooth",.06);}
 }
 function attack(){
@@ -199,6 +203,21 @@ function update(dt){
   boss.attack+=dt;
   if(hit(player,boss)){if(player.vy>90 && oldY+player.h<boss.y+18){boss.hp--;player.vy=-330;boss.flash=.2;score+=25;beep(190,.08,"sawtooth");if(boss.hp<=0){boss.alive=false;score+=1000;}}else damage();}
  }
+ // Traps: rolling boulders and timed flame vents. Damage values are different by trap.
+ traps.forEach(t=>{
+  t.hitCooldown=Math.max(0,t.hitCooldown-dt);
+  if(t.type==="boulder"){
+   t.x+=t.dir*105*dt;
+   if(t.x<t.start||t.x>t.end){t.dir*=-1;t.x=Math.max(t.start,Math.min(t.end,t.x));}
+   const b={x:t.x,y:world.ground-30,w:30,h:30};
+   if(hit(player,b)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.35;addParticles(t.x+15,world.ground-15,"#b8aaa0",12);}
+  } else if(t.type==="fire"){
+   t.phase=(t.phase+dt)%t.period;
+   t.flameOn=t.phase<t.active;
+   const flame={x:t.x-12,y:world.ground-78,w:24,h:78};
+   if(t.flameOn&&hit(player,flame)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.3;addParticles(t.x,world.ground-45,"#ff8738",10);beep(95,.12,"sawtooth",.045);}
+  }
+ });
  // exit
  if(player.x+player.w>world.goal && (!world.boss || !boss.alive)) nextLevel();
  particles=particles.filter(p=>p.life>0);
@@ -255,6 +274,24 @@ function drawWorld(cam){
  });
  // dangerous crystal spikes
  world.pits.forEach(p=>{for(let x=p[0]+4;x<p[1]-8;x+=16){glow(x-cam+8,world.ground-5,16,"#fb477e",.22);ctx.fillStyle="#e84e83";ctx.beginPath();ctx.moveTo(x-cam,world.ground+7);ctx.lineTo(x+8-cam,world.ground-12);ctx.lineTo(x+16-cam,world.ground+7);ctx.fill();ctx.fillStyle="#ffb4d0";ctx.beginPath();ctx.moveTo(x+6-cam,world.ground-7);ctx.lineTo(x+8-cam,world.ground-12);ctx.lineTo(x+10-cam,world.ground-7);ctx.fill();}});
+ // New traps: chunky pixel boulders and warning-lit flame vents.
+ traps.forEach(t=>{
+  const x=t.x-cam;
+  if(t.type==="boulder"){
+   glow(x+15,world.ground-15,34,"#8e8277",.18);
+   rect(x+2,world.ground-29,26,26,"#575653");rect(x+6,world.ground-33,18,5,"#77736b");
+   rect(x+1,world.ground-21,7,9,"#3c3c3b");rect(x+13,world.ground-25,8,7,"#89847a");rect(x+17,world.ground-11,8,6,"#444340");
+   rect(x+5,world.ground-7,5,3,"#a49a8b");rect(x+22,world.ground-30,4,4,"#302f30");
+   // small motion marks communicate that the boulder is moving
+   if(Math.abs(t.dir)>0){rect(x-(t.dir>0?10:-10),world.ground-17,6,2,"#a49a8b");rect(x-(t.dir>0?17:-17),world.ground-10,4,2,"#77736b");}
+  } else {
+   rect(x-17,world.ground-4,34,8,"#373b42");rect(x-12,world.ground-8,24,4,"#77736b");
+   rect(x-5,world.ground-12,10,4,"#c06b39");
+   const warning=t.phase>t.active-.35;
+   if(t.flameOn){glow(x,world.ground-43,37,"#ff5a22",.45);rect(x-9,world.ground-18,18,12,"#f06a2b");rect(x-6,world.ground-34,12,18,"#ff9c36");rect(x-3,world.ground-49,6,17,"#ffd47b");rect(x-2,world.ground-57,4,8,"#fff0b5");}
+   else if(warning){glow(x,world.ground-12,20,"#ff5a22",.18);rect(x-3,world.ground-17,6,4,"#ff9c36");}
+  }
+ });
  // exit portal
  const gx=world.goal-cam, gy=world.ground-69, pulse=.7+.3*Math.sin(performance.now()/190);
  glow(gx+16,gy+38,65,"#a855f7",pulse);rect(gx-5,gy-4,42,73,"#4b2d70");rect(gx,gy,32,65,"#9b5de5");rect(gx+5,gy+5,22,55,"#201532");
@@ -342,7 +379,7 @@ st.subheader("🕹️ Mục tiêu bản đầu")
 st.markdown(
     """
     - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**.
-    - Thu thập xu, tránh hố và gai, tiêu diệt quái vật.
+    - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
     - Điểm cao nhất được lưu trên trình duyệt của bạn. Đây là lưu cục bộ trên thiết bị hiện tại, chưa phải tài khoản đồng bộ giữa nhiều máy.
     """
