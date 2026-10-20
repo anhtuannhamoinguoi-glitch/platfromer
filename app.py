@@ -59,7 +59,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
     <div class="menu" id="mainmenu"><div class="menu-card"><div class="eyebrow">THE LAST LIGHT IS FADING</div><div class="menu-title">SHADOWBOUND</div><div class="menu-sub">A SOULSLIKE PIXEL ADVENTURE</div><div class="rule"></div><button class="start-btn" id="startbtn">BẮT ĐẦU HÀNH TRÌNH</button><div class="menu-note">Ba vùng đất. Một lời nguyền. Không có đường quay lại.</div></div><div class="corner">WASD / ARROWS · SPACE · J</div></div>
   </div>
-  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ LĂN KHỔNG LỒ (NGHỈ LÂU RỒI LĂN) / LỬA</div>
+  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
 <script>
 (() => {
@@ -105,7 +105,7 @@ function makeWorld(index) {
  enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
- traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",pauseTimer:(t.type==="boulder"?(t.pause||5)*(0.45+Math.random()*0.45):0),rollTimer:0,hitCooldown:0}));
+ traps = (d.traps || []).map((t,i)=>({...t,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,pauseTimer:(t.type==="boulder"?(t.pause||6)*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -207,21 +207,25 @@ function update(dt){
  traps.forEach(t=>{
   t.hitCooldown=Math.max(0,t.hitCooldown-dt);
   if(t.type==="boulder"){
-   // Huge boulder alternates between a long, readable rest and a short, dangerous roll.
-   const size=t.size||108;
+   // A giant boulder drops vertically from above after a long warning/rest interval.
+   const size=t.size||112, landingY=world.ground-size;
    if(t.state==="rest"){
+    t.y=-size-10;
     t.pauseTimer-=dt;
-    if(t.pauseTimer<=0){t.state="roll";t.rollTimer=t.rollTime||3.0;beep(75,.22,"sawtooth",.045);addParticles(t.x+size/2,world.ground-4,"#9b9387",9);}
-   } else {
-    t.x+=t.dir*(t.speed||250)*dt;
-    t.rollTimer-=dt;
-    if(t.x<=t.start||t.x>=t.end||t.rollTimer<=0){
-     t.x=Math.max(t.start,Math.min(t.end,t.x));t.dir*=-1;t.state="rest";t.pauseTimer=t.pause||5.0;
-     addParticles(t.x+size/2,world.ground-5,"#b8aaa0",15);
+    if(t.pauseTimer<=0){t.state="drop";beep(95,.18,"sawtooth",.05);}
+   } else if(t.state==="drop"){
+    t.y+= (t.dropSpeed||620)*dt;
+    if(t.y>=landingY){
+     t.y=landingY;t.state="landed";t.impactTimer=.55;t.pauseTimer=.55;shake=.32;
+     addParticles(t.x,world.ground-5,"#b8aaa0",24);beep(58,.28,"sawtooth",.065);
     }
+   } else if(t.state==="landed"){
+    t.pauseTimer-=dt;
+    if(t.pauseTimer<=0){t.state="rest";t.y=-size-10;t.pauseTimer=t.pause||6.5;}
    }
-   const b={x:t.x+size*0.08,y:world.ground-size*0.94,w:size*0.84,h:size*0.94};
-   if(hit(player,b)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.35;addParticles(t.x+size/2,world.ground-size/2,"#b8aaa0",16);}
+   // Collision follows the falling rock, not just its final ground position.
+   const b={x:t.x-size*.46,y:t.y+size*.06,w:size*.92,h:size*.88};
+   if(t.state!=="rest" && hit(player,b)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.35;addParticles(t.x,Math.max(0,t.y+size/2),"#b8aaa0",16);}
   } else if(t.type==="fire"){
    t.phase=(t.phase+dt)%t.period;
    t.flameOn=t.phase<t.active;
@@ -289,30 +293,32 @@ function drawWorld(cam){
  traps.forEach(t=>{
   const x=t.x-cam;
   if(t.type==="boulder"){
-   const size=t.size||108, by=world.ground-size;
-   // Ground shadow and warning dust make the large hazard readable at a glance.
-   ctx.globalAlpha=.35;rect(x-8,world.ground-5,size+16,7,"#000000");ctx.globalAlpha=1;
-   glow(x+size/2,world.ground-size*.42,size*.72,t.state==="roll"?"#b4a18a":"#887b68",t.state==="roll"?.24:.10);
-   // Chunky pixel-rock silhouette, intentionally angular rather than a smooth circle.
-   rect(x+size*.22,by+size*.04,size*.54,size*.08,"#756e63");
-   rect(x+size*.12,by+size*.12,size*.76,size*.15,"#625e57");
-   rect(x+size*.06,by+size*.27,size*.88,size*.43,"#514f4b");
-   rect(x+size*.12,by+size*.70,size*.76,size*.17,"#3d3d3c");
-   rect(x+size*.24,by+size*.87,size*.52,size*.08,"#292c2d");
-   rect(x+size*.20,by+size*.17,size*.22,size*.14,"#8a8174");
-   rect(x+size*.56,by+size*.31,size*.20,size*.12,"#777166");
-   rect(x+size*.16,by+size*.49,size*.18,size*.11,"#393b3b");
-   rect(x+size*.48,by+size*.62,size*.25,size*.13,"#686258");
-   rect(x+size*.34,by+size*.38,size*.09,size*.18,"#353737");
-   rect(x+size*.72,by+size*.18,size*.08,size*.08,"#a09786");
-   // While resting, a subtle warning pulse signals that the boulder will soon move.
+   const size=t.size||112, bx=t.x-cam-size/2, by=t.y;
+   // Show a faint vertical warning mark while the giant rock waits overhead.
    if(t.state==="rest"){
-    const pulse=.25+.25*Math.sin(performance.now()/180);
-    glow(x+size/2,world.ground-size*.48,size*.58,"#d4a66b",pulse*.32);
-    if(t.pauseTimer<1.2){rect(x+size*.42,by-9,size*.16,4,"#d6a35e");}
-   }else{
-    rect(x-size*.20,world.ground-size*.38,size*.13,4,"#aaa092");rect(x-size*.30,world.ground-size*.26,size*.09,3,"#77736b");
-    rect(x+size*1.04,world.ground-size*.32,size*.12,4,"#aaa092");
+    ctx.globalAlpha=.35;rect(x-2,0,4,world.ground-size,"#8f7958");ctx.globalAlpha=1;
+    const pulse=.25+.25*Math.sin(performance.now()/220);
+    glow(x,Math.min(120,world.ground-size),size*.65,"#d4a66b",pulse*.2);
+    rect(x-9,8,18,3,"#8f7958");
+   }
+   if(t.state!=="rest"){
+    // Ground shadow grows darker on impact; the boulder itself falls from the top of the screen.
+    ctx.globalAlpha=t.state==="landed"?.48:.18;rect(x-size*.58,world.ground-5,size*1.16,7,"#000000");ctx.globalAlpha=1;
+    glow(x,by+size*.5,size*.75,t.state==="drop"?"#b4a18a":"#887b68",t.state==="drop"?.18:.24);
+    rect(bx+size*.22,by+size*.04,size*.54,size*.08,"#756e63");
+    rect(bx+size*.12,by+size*.12,size*.76,size*.15,"#625e57");
+    rect(bx+size*.06,by+size*.27,size*.88,size*.43,"#514f4b");
+    rect(bx+size*.12,by+size*.70,size*.76,size*.17,"#3d3d3c");
+    rect(bx+size*.24,by+size*.87,size*.52,size*.08,"#292c2d");
+    rect(bx+size*.20,by+size*.17,size*.22,size*.14,"#8a8174");
+    rect(bx+size*.56,by+size*.31,size*.20,size*.12,"#777166");
+    rect(bx+size*.16,by+size*.49,size*.18,size*.11,"#393b3b");
+    rect(bx+size*.48,by+size*.62,size*.25,size*.13,"#686258");
+    rect(bx+size*.34,by+size*.38,size*.09,size*.18,"#353737");
+    rect(bx+size*.72,by+size*.18,size*.08,size*.08,"#a09786");
+    if(t.state==="drop"){
+     rect(bx-size*.18,by+size*.48,size*.13,4,"#aaa092");rect(bx+size*1.04,by+size*.34,size*.12,4,"#aaa092");
+    }
    }
   } else {
    rect(x-17,world.ground-4,34,8,"#373b42");rect(x-12,world.ground-8,24,4,"#77736b");
