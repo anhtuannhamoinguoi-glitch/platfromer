@@ -102,6 +102,8 @@ let difficulty = "normal";
 const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh; lửa phun ở nhiều độ cao khác nhau."}};
 let score = 0, coins = 0, levelIndex = 0, attackTimer = 0, invuln = 0, shake = 0;
 let shopOpen = false, shopMessage = "";
+let godMode = false, cheatBuffer = "";
+const INFINITE_COINS = 999999999;
 let shopUpgrades = {hp:0, damage:0, speed:0};
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
@@ -173,6 +175,7 @@ function floorAt(x){
 }
 function platforms(){return world.platforms.map(p=>({x:p[0],y:p[1],w:p[2],h:16}));}
 function damage(amount=1){
+ if(godMode){player.hp=player.maxHp;invuln=.15;return;}
  if(invuln>0 || gameOver || victory) return;
  player.hp=Math.max(0,player.hp-amount); invuln=1.25; shake=.25; noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
  if(player.hp<=0){gameOver=true; beep(90,.5,"sawtooth",.06);}
@@ -198,22 +201,23 @@ function shopCost(item){
  return base+shopUpgrades[item]*step;
 }
 function updateShopUI(){
- document.getElementById("shopcoins").textContent=coins;
+ document.getElementById("shopcoins").textContent=godMode?"∞ (VÔ HẠN)":coins;
  document.getElementById("shopscore").textContent=score;
  document.getElementById("hpprice").textContent="Giá: "+shopCost("hp")+" linh hồn";
  document.getElementById("dmgprice").textContent="Giá: "+shopCost("damage")+" linh hồn";
  document.getElementById("spdprice").textContent="Giá: "+shopCost("speed")+" linh hồn";
  document.querySelectorAll(".buy-btn").forEach(btn=>{
   const cost=shopCost(btn.dataset.item);
-  btn.disabled=coins<cost;
-  btn.textContent=coins<cost?"CHƯA ĐỦ XU":"MUA · "+cost+" ◈";
+  btn.disabled=!godMode && coins<cost;
+  btn.textContent=godMode?"MUA MIỄN PHÍ · ∞ ◈":(coins<cost?"CHƯA ĐỦ XU":"MUA · "+cost+" ◈");
  });
  document.getElementById("shopmessage").textContent=shopMessage||"Chọn vật phẩm để chuẩn bị cho chặng tiếp theo.";
 }
 function buyItem(item){
  const cost=shopCost(item);
- if(coins<cost){shopMessage="Bạn chưa có đủ linh hồn để mua vật phẩm này.";beep(110,.1,"square");updateShopUI();return;}
- coins-=cost;shopUpgrades[item]++;
+ if(!godMode && coins<cost){shopMessage="Bạn chưa có đủ linh hồn để mua vật phẩm này.";beep(110,.1,"square");updateShopUI();return;}
+ if(!godMode) coins-=cost; else coins=INFINITE_COINS;
+ shopUpgrades[item]++;
  if(item==="hp"){player.maxHp++;player.hp=Math.min(player.maxHp,player.hp+1);}
  shopMessage=({hp:"Sinh mệnh được tăng cường!",damage:"Lưỡi kiếm phát sáng mạnh hơn!",speed:"Bước chân bóng tối đã được nâng cấp!"})[item];
  beep(740,.1,"triangle");updateShopUI();
@@ -261,7 +265,7 @@ function loadLevelSlot(index){
   document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;
   levelIndex=index;makeWorld(index);
   player=data.player;enemies=data.enemies;coinsList=data.coinsList;boss=data.boss;traps=data.traps;
-  score=data.score||0;coins=data.coins||0;shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};
+  score=data.score||0;coins=godMode?INFINITE_COINS:(data.coins||0);shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};
   started=true;gameOver=false;victory=false;shopOpen=false;attackTimer=0;invuln=0;shake=0;
   document.getElementById("mainmenu").style.display="none";
   document.getElementById("shopmenu").style.display="none";
@@ -296,7 +300,7 @@ function update(dt){
  }
  if(player.y>H+80){damage();if(player.hp>0){player.x=Math.max(40,player.x-120);player.y=250;player.vy=0;}}
  // collect coins
- coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins++;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
+ coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins=godMode?INFINITE_COINS:coins+1;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
  // enemies
  enemies.forEach(e=>{
   if(!e.alive)return;
@@ -651,7 +655,7 @@ function draw(){
  document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
  document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
- document.getElementById("coins").textContent="◈ "+coins+"  ·  "+score;
+ document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
  if(gameOver||victory)saveBest();
 }
@@ -667,7 +671,17 @@ document.getElementById("continuebtn").addEventListener("click",()=>{
 canvas.addEventListener("pointerdown",()=>{canvas.focus();});
 window.addEventListener("keydown",e=>{
  const k=e.key;
- if(["ArrowLeft","ArrowRight","ArrowUp"," ","ArrowDown"].includes(k))e.preventDefault();
+ // Bí mật: gõ lần lượt /67 để bật bất tử và vô hạn vàng.
+ if(k.length===1){cheatBuffer=(cheatBuffer+k).slice(-3);}
+ if(cheatBuffer.endsWith("/67")){
+  godMode=!godMode;coins=godMode?INFINITE_COINS:Math.min(coins,INFINITE_COINS);
+  if(player){player.hp=player.maxHp;invuln=0;}
+  document.getElementById("save-message").textContent= (godMode?"✦ CHEAT ĐÃ BẬT: BẤT TỬ + VÔ HẠN VÀNG. Gõ /67 lần nữa để tắt.":"Cheat đã tắt. Máu có thể giảm trở lại.");
+  if(shopOpen){shopMessage="Mật mã bí mật đã kích hoạt! Mua hàng miễn phí.";updateShopUI();}
+  beep(980,.16,"triangle",.06);cheatBuffer="";
+ }
+ if(k==="Escape")cheatBuffer="";
+ if(["ArrowLeft","ArrowRight","ArrowUp"," ","ArrowDown","/"].includes(k))e.preventDefault();
  keys[k]=true;
  if(k==="j"||k==="J")attack();
  if(k==="m"||k==="M"){audioOn=!audioOn;beep(500,.06);}
