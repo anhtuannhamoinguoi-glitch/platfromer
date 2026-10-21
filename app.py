@@ -128,22 +128,20 @@ const levels = [
   pits:[[390,455],[630,690],[880,930],[1110,1160],[1390,1440],[1660,1710],[1950,2010]],
   coinSpots:[[180,380],[290,315],[520,265],[760,325],[1010,275],[1260,315],[1540,255],[1810,305],[2050,385]],
   enemies:[330,780,1040,1570,1870],
-  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0},
-   {type:"laser",x:760,y:245,damage:0.8,period:3.8,active:1.15,points:[[760,245],[900,245],[900,345],[1035,345],[1035,265]]}], boss:false},
+  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
  {name:"Hầm Ngục", length:2600, start:70, goal:2470, ground:430, checkpoints:[{x:1165,y:340,label:"Bàn thờ tro"},{x:1945,y:280,label:"Ấn phong ấn"}],
   platforms:[[210,350,120],[430,300,130],[680,350,120],[900,285,130],[1160,340,140],[1430,290,130],[1680,350,130],[1940,280,130],[2190,340,120]],
   pits:[[360,410],[620,670],[850,890],[1100,1150],[1390,1420],[1640,1670],[1900,1930],[2150,2180]],
   coinSpots:[[150,380],[250,305],[470,255],[720,305],[950,240],[1200,295],[1480,245],[1730,305],[1990,235],[2250,295]],
   enemies:[300,740,1020,1510,1810,2250],
-  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},
-   {type:"laser",x:1240,y:225,damage:0.85,period:3.3,active:1.35,points:[[1240,225],[1380,225],[1380,330],[1530,330],[1530,245]]}], boss:false},
+  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0}], boss:false},
  {name:"Đấu Trường", length:1800, start:70, goal:1680, ground:430, checkpoints:[{x:800,y:350,label:"Cổng đấu trường"}],
   platforms:[[280,350,130],[540,300,130],[800,350,140],[1080,300,130],[1350,350,130]],
   pits:[[430,480],[700,750],[970,1020],[1240,1290]],
   coinSpots:[[180,380],[330,305],[590,255],[850,305],[1130,255],[1400,305],[1580,385]],
   enemies:[350,880],
   traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:990,start:950,end:1290,damage:1.35,size:120,speed:275,pause:5.5,rollTime:3.2},
-   {type:"laser",x:600,y:235,damage:0.95,period:2.8,active:1.55,points:[[600,235],[745,235],[745,335],[885,335],[885,245]]}], boss:true}
+   {type:"laser",x:600,y:235,damage:0.95,period:2.8,active:1.55,bouncy:true,radius:42,vx:340,vy:230,points:[[600,235],[760,235]]}], boss:true}
 ];
 let world, player, enemies, coinsList, particles, boss, traps;
 let enemyArrows = [];
@@ -168,7 +166,7 @@ function makeWorld(index) {
  enemyArrows = [];
  activeCheckpoint = {x:d.start, y:350, label:"Khởi đầu"};
  checkpointNotice = 0;
- traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0,laserPhase:Math.random()*(t.period||2),laserOn:false}));
+ traps = (d.traps || []).filter(t=>t.type!=="laser" || index===2).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:t.type==="laser"?t.y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0,laserPhase:Math.random()*(t.period||2),laserOn:false,laserVx:t.vx||0,laserVy:t.vy||0}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
 }
@@ -520,6 +518,16 @@ function update(dt){
    const flame={x:t.x-14,y:world.ground-flameH,w:28,h:flameH};
    if(t.flameOn&&hit(player,flame)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.3;addParticles(t.x,world.ground-45,"#ff8738",10);beep(95,.12,"sawtooth",.045);}
   } else if(t.type==="laser"){
+   // Level 3: a large laser orb bounces across the playable area and carries its beam with it.
+   if(t.bouncy){
+    const radius=t.radius||42;
+    t.x+=t.laserVx*dt;t.y+=t.laserVy*dt;
+    if(t.x<radius+8){t.x=radius+8;t.laserVx=Math.abs(t.laserVx);}
+    if(t.x>world.length-radius-8){t.x=world.length-radius-8;t.laserVx=-Math.abs(t.laserVx);}
+    if(t.y<radius+18){t.y=radius+18;t.laserVy=Math.abs(t.laserVy);}
+    if(t.y>world.ground-radius-8){t.y=world.ground-radius-8;t.laserVy=-Math.abs(t.laserVy);}
+    t.points=[[t.x-radius*2.6,t.y],[t.x+radius*2.6,t.y]];
+   }
    // Laser pulses on/off; its route has at most three reflections at solid mirror objects.
    const period=t.period/(difficulty==="hard"?1.2:difficulty==="easy"?0.88:1);
    const active=t.active*(difficulty==="hard"?1.18:difficulty==="easy"?0.78:1);
@@ -527,12 +535,13 @@ function update(dt){
    t.laserOn=t.laserPhase<active;
    if(t.laserOn && t.hitCooldown<=0){
     const pts=t.points||[]; let hitBeam=false;
+    const px=player.x+player.w/2,py=player.y+player.h/2;
+    if(t.bouncy && Math.hypot(px-t.x,py-t.y)<(t.radius||42)+Math.max(player.w,player.h)*.35) hitBeam=true;
     for(let i=0;i<pts.length-1;i++){
-     const a=pts[i],b=pts[i+1],px=player.x+player.w/2,py=player.y+player.h/2;
-     const dx=b[0]-a[0],dy=b[1]-a[1],len2=dx*dx+dy*dy;
+     const a=pts[i],b=pts[i+1],dx=b[0]-a[0],dy=b[1]-a[1],len2=dx*dx+dy*dy;
      const u=Math.max(0,Math.min(1,((px-a[0])*dx+(py-a[1])*dy)/(len2||1)));
      const qx=a[0]+u*dx,qy=a[1]+u*dy;
-     if(Math.hypot(px-qx,py-qy)<13){hitBeam=true;break;}
+     if(Math.hypot(px-qx,py-qy)<(t.bouncy?10:13)){hitBeam=true;break;}
     }
     if(hitBeam){damage(t.damage);t.hitCooldown=1.05;addParticles(player.x+12,player.y+16,"#ff4d6d",12);beep(150,.1,"sawtooth",.045);}
    }
@@ -785,6 +794,23 @@ function drawWorld(cam){
    else if(warning){glow(x,world.ground-12,20,"#ff5a22",.18);rect(x-3,world.ground-17,6,4,"#ff9c36");}
   } else if(t.type==="laser"){
    const pts=t.points||[];
+   if(t.bouncy){
+    const cx=t.x-cam,cy=t.y,r=t.radius||42;
+    // Wide pulsing beam plus a large glowing core.
+    if(t.laserOn && pts.length>1){
+     const a=pts[0],b=pts[1];
+     ctx.save();ctx.strokeStyle="#ff244f";ctx.lineWidth=18;ctx.globalAlpha=.24;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ff3158";ctx.lineWidth=8;ctx.globalAlpha=.75;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ffe8ed";ctx.lineWidth=3;ctx.globalAlpha=.98;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();ctx.restore();
+    }
+    glow(cx,cy,r*2.3,"#ff174f",t.laserOn?.65:.3);
+    glow(cx,cy,r*1.25,"#ff496b",.7);
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(performance.now()/280);
+    ctx.strokeStyle=t.laserOn?"#fff0f3":"#ff7f9b";ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-r*.78,0);ctx.lineTo(r*.78,0);ctx.moveTo(0,-r*.78);ctx.lineTo(0,r*.78);ctx.stroke();
+    ctx.fillStyle=t.laserOn?"#fff0f3":"#ff8ca5";ctx.beginPath();ctx.arc(0,0,r*.62,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#b80f39";ctx.beginPath();ctx.arc(0,0,r*.3,0,Math.PI*2);ctx.fill();ctx.restore();
+   } else {
    // Emitter and up to three solid reflectors along the authored laser route.
    pts.forEach((p,i)=>{
     const px=p[0]-cam,py=p[1];
@@ -800,6 +826,7 @@ function drawWorld(cam){
      ctx.strokeStyle="#ffe8ed";ctx.lineWidth=1;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();ctx.restore();
     }
    } else if(pts.length>1){const a=pts[0],b=pts[1];ctx.save();ctx.strokeStyle="#ff526e";ctx.lineWidth=2;ctx.globalAlpha=.25;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();ctx.restore();}
+   }
   }
   // Countdown badge for every trap: tells the player when danger starts or ends.
   let timerLabel="", timerX=t.x-cam, timerY=world.ground-105, timerColor="#fbbf24";
@@ -816,7 +843,7 @@ function drawWorld(cam){
    const active=t.active*(difficulty==="hard"?1.18:difficulty==="easy"?0.78:1);
    if(t.laserOn){timerLabel="LASER TẮT: "+Math.max(0,(active-t.laserPhase)).toFixed(1)+"s";timerColor="#ff657f";}
    else {timerLabel="LASER SAU: "+Math.max(0,(period-t.laserPhase)).toFixed(1)+"s";timerColor="#ffd166";}
-   timerY=(t.points&&t.points.length?t.points[0][1]:240)-27;
+   timerY=(t.bouncy?t.y:(t.points&&t.points.length?t.points[0][1]:240))- (t.bouncy?((t.radius||42)+24):27);
   }
   if(timerLabel){
    ctx.save();ctx.font="bold 11px Courier New, monospace";ctx.textAlign="center";
