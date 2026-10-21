@@ -983,9 +983,36 @@ function draw(){
  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
  document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
- if(gameOver||victory)saveBest();
+
 }
-function loop(t){const dt=(t-lastTime)/1000||0;lastTime=t;update(dt);draw();requestAnimationFrame(loop);}
+// Vòng lặp tối ưu: giới hạn khoảng 40 FPS để giảm tải khi vẽ nhiều hiệu ứng.
+let lastFrameTime=0, lastBestSavedState="";
+const FRAME_INTERVAL=1000/40;
+function loop(t){
+ if(document.hidden){
+  lastTime=0;lastFrameTime=0;
+  requestAnimationFrame(loop);
+  return;
+ }
+ if(lastFrameTime && t-lastFrameTime<FRAME_INTERVAL){
+  requestAnimationFrame(loop);
+  return;
+ }
+ const dt=lastTime?(t-lastTime)/1000:0;
+ lastTime=t;lastFrameTime=t;
+ update(Math.min(dt,.033));
+ draw();
+ // Chỉ lưu kỷ lục một lần khi trạng thái thua/thắng thay đổi, không ghi bộ nhớ mỗi khung hình.
+ if(gameOver||victory){
+  const resultKey=(victory?"victory":"gameover")+":"+score;
+  if(resultKey!==lastBestSavedState){
+   saveBest();
+   lastBestSavedState=resultKey;
+  }
+ }
+ requestAnimationFrame(loop);
+}
+document.addEventListener("visibilitychange",()=>{lastTime=0;lastFrameTime=0;});
 requestAnimationFrame(loop);
 document.querySelectorAll(".diff-btn").forEach(btn=>btn.addEventListener("click",()=>{difficulty=btn.dataset.diff;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b===btn));document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;makeWorld(levelIndex); }));
 document.getElementById("startbtn").addEventListener("click",()=>{score=0;coins=0;levelIndex=0;shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();persistCheckpoint();beep(330,.08,"triangle",.025);});
