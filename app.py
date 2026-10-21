@@ -146,15 +146,26 @@ const levels = [
    {type:"laser",x:600,y:235,damage:0.95,period:2.8,active:1.55,points:[[600,235],[745,235],[745,335],[885,335],[885,245]]}], boss:true}
 ];
 let world, player, enemies, coinsList, particles, boss, traps;
+let enemyArrows = [];
 
 function makeWorld(index) {
  const d = levels[index];
  world = d;
  player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:difficultySettings[difficulty].hp,maxHp:difficultySettings[difficulty].hp,anim:0};
- enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55*difficultySettings[difficulty].enemy,alive:true,home:x,range:75,hp:1}));
+ enemies = d.enemies.map((x,i)=>{
+  // Alternate enemy roles across each level so both new archetypes appear in every region.
+  const type=(i%2===0)?"archer":"tanker";
+  return {type,x,y:390,w:type==="tanker"?34:26,h:type==="tanker"?38:30,
+   vx:(i%2?1:-1)*(type==="tanker"?42:48)*difficultySettings[difficulty].enemy,
+   vy:0,grounded:false,alive:true,home:x,range:type==="tanker"?110:95,hp:type==="tanker"?3:2,
+   maxHp:type==="tanker"?3:2,shotCooldown:1.1+Math.random()*1.2,flash:0,
+   jumpCooldown:.7+Math.random(),chargeCooldown:1.3+Math.random(),charging:0};
+ });
+ enemyArrows = [];
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
  bossProjectiles = [];
+ enemyArrows = [];
  activeCheckpoint = {x:d.start, y:350, label:"Khởi đầu"};
  checkpointNotice = 0;
  traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0,laserPhase:Math.random()*(t.period||2),laserOn:false}));
@@ -275,7 +286,7 @@ function retryFromCheckpoint(){
  gameOver=false;victory=false;player.hp=player.maxHp;player.x=activeCheckpoint.x;player.y=activeCheckpoint.y;player.vx=0;player.vy=0;player.grounded=false;invuln=2;attackTimer=0;
  enemies.forEach(e=>{if(!e.alive){e.alive=true;e.x=e.home;e.vx=Math.abs(e.vx)*(Math.random()<.5?-1:1);}});
  if(boss && !boss.alive){boss.alive=true;boss.hp=boss.maxHp;boss.x=1320;boss.vx=70;boss.attack=0;}
- bossProjectiles=[];
+ bossProjectiles=[];enemyArrows=[];
  traps.forEach(t=>{t.hitCooldown=0;if(t.type==="boulder"){t.state="rest";t.y=-(t.size||112)-10;t.pauseTimer=Math.max(1,t.pause||5);} });
  persistCheckpoint();beep(520,.1,"triangle");canvas.focus();
 }
@@ -366,16 +377,97 @@ function update(dt){
  checkpointNotice=Math.max(0,checkpointNotice-dt);
  // collect coins
  coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins=godMode?INFINITE_COINS:coins+1;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
- // enemies
+ // Enemy AI: archers fire aimed arrows; tankers leap onto raised platforms and shove the player.
  enemies.forEach(e=>{
   if(!e.alive)return;
-  e.x+=e.vx*dt;
-  if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;
+  e.flash=Math.max(0,(e.flash||0)-dt);
+  const dx=(player.x+player.w/2)-(e.x+e.w/2);
+  const distance=Math.abs(dx);
+  if(e.type==="archer"){
+   // Keep a little distance from the player, but continue patrolling when far away.
+   if(distance<250)e.vx*=Math.pow(.92,dt*60);
+   else {e.x+=e.vx*dt;if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;}
+   e.shotCooldown-=dt;
+   if(e.shotCooldown<=0 && distance<560){
+    const dir=dx>=0?1:-1;
+    const sx=e.x+e.w/2+dir*8, sy=e.y+12;
+    const aimY=(player.y+player.h*.42)-sy;
+    const len=Math.max(1,Math.hypot(dx,aimY));
+    const arrowSpeed=difficulty==="hard"?370:310;
+    enemyArrows.push({x:sx,y:sy,vx:dx/len*arrowSpeed,vy:aimY/len*arrowSpeed,life:2.3,damage:difficulty==="hard"?.8:.55,angle:Math.atan2(aimY,dx),trail:0});
+    e.shotCooldown=(difficulty==="hard"?1.25:1.75)+Math.random()*.65;
+    addParticles(sx,sy,"#ff8a65",3);beep(210,.035,"triangle",.012);
+   }
+  }else{
+   // Tanker has a short wind-up, then charges with enough force to push the player.
+   e.chargeCooldown-=dt;
+   if(e.charging>0){
+    e.charging-=dt;e.x+=e.vx*2.25*dt;
+    if(e.charging<=0){e.vx=Math.sign(e.vx||1)*52*difficultySettings[difficulty].enemy;}
+   }else{
+    const dir=dx>=0?1:-1;
+    e.x+=e.vx*dt;
+    if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;
+    // Jump when a raised platform is directly ahead or the player is on higher ground.
+    const foot=e.y+e.h;
+    const nearPlatform=platforms().find(p=>{
+     const ahead=dir>0?(p.x>e.x+e.w-3 && p.x<e.x+e.w+58):(p.x+p.w<e.x+3 && p.x+p.w>e.x-58);
+     return ahead && p.y<foot-16 && p.y>foot-112;
+    });
+    const playerAbove=player.y+player.h<e.y+e.h-24 && distance<175;
+    e.jumpCooldown-=dt;
+    if(e.grounded && e.jumpCooldown<=0 && (nearPlatform||playerAbove)){
+     e.vy=nearPlatform?-440:-390;e.grounded=false;
+     e.jumpCooldown=1.25+Math.random()*.5;
+     addParticles(e.x+e.w/2,e.y+e.h,"#d97706",5);
+    }
+    e.vy=Math.min(650,(e.vy||0)+1080*dt);
+    const oldEnemyY=e.y;e.y+=e.vy*dt;e.grounded=false;
+    const efloor=floorAt(e.x+e.w/2);
+    if(e.y+e.h>=efloor && oldEnemyY+e.h<=efloor+18 && efloor<H+50){e.y=efloor-e.h;e.vy=0;e.grounded=true;}
+    for(const p of platforms()){
+     if(e.vy>=0 && oldEnemyY+e.h<=p.y+5 && e.y+e.h>=p.y && e.x+e.w>p.x && e.x<p.x+p.w){
+      e.y=p.y-e.h;e.vy=0;e.grounded=true;
+     }
+    }
+    if(e.chargeCooldown<=0 && distance<180 && distance>25){
+     e.vx=dir*(difficulty==="hard"?220:185);e.charging=.42;e.chargeCooldown=2.1;
+     addParticles(e.x+e.w/2,e.y+e.h-3,"#fb923c",7);shake=Math.max(shake,.07);
+    }
+   }
+  }
+  // Stay inside the level and collide with the player.
+  e.x=Math.max(0,Math.min(world.length-e.w,e.x));
   const eb={x:e.x,y:e.y,w:e.w,h:e.h};
   if(hit(player,eb)){
-   if(player.vy>80 && oldY+player.h<e.y+12){e.alive=false;player.vy=-300;score+=100;addParticles(e.x,e.y,"#a9c6d9",10);beep(500,.07);}
-   else damage();
+   if(e.type==="tanker" && e.charging>0){
+    if(!godMode && invuln<=0){
+     player.hp=Math.max(0,player.hp-(difficulty==="hard"?1.1:.8));
+     player.vx=Math.sign(dx||1)*(difficulty==="hard"?430:350);
+     player.vy=-245;invuln=1.0;noiseHit();shake=.24;
+     addParticles(player.x+player.w/2,player.y+player.h/2,"#fb923c",12);
+     if(player.hp<=0){gameOver=true;beep(90,.5,"sawtooth",.06);}
+    }
+   }else if(player.vy>80 && oldY+player.h<e.y+12){
+    e.hp-=1;e.flash=.15;player.vy=-300;score+=e.type==="tanker"?60:100;
+    addParticles(e.x+e.w/2,e.y,"#a9c6d9",10);beep(500,.07);
+    if(e.hp<=0)e.alive=false;
+   }else damage();
   }
+ });
+ // Arrow projectiles keep moving independently and deal damage on impact.
+ enemyArrows=enemyArrows.filter(a=>{
+  a.life-=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;a.trail=(a.trail||0)+dt;
+  if(a.life<=0||a.x<cam-60||a.x>cam+W+60||a.y<-40||a.y>H+40)return false;
+  if(hit(player,{x:a.x-5,y:a.y-3,w:10,h:6})){
+   if(!godMode && invuln<=0){
+    player.hp=Math.max(0,player.hp-a.damage);player.vx+=(a.vx>0?1:-1)*150;player.vy=-110;
+    invuln=.8;noiseHit();addParticles(a.x,a.y,"#ff8a65",8);
+    if(player.hp<=0){gameOver=true;beep(90,.5,"sawtooth",.06);}
+   }
+   return false;
+  }
+  return true;
  });
  if(boss && boss.alive){
   boss.x+=boss.vx*dt;
@@ -749,21 +841,48 @@ function drawWorld(cam){
  ctx.strokeStyle="#e9c8ff";ctx.lineWidth=3;ctx.strokeRect(gx+4,gy+3,24,59);rect(gx+10,gy+13,4,4,"#f3d7ff");rect(gx+20,gy+30,4,4,"#f3d7ff");
  // coins: glowing gold pixel coins
  coinsList.forEach(c=>{if(c.taken)return;let wob=Math.sin(performance.now()/180+c.x)*3,x=c.x-cam,y=c.y+wob;glow(x,y,23,"#fbbf24",.3);rect(x-6,y-8,12,16,"#e9a52e");rect(x-4,y-10,8,2,"#ffe8a1");rect(x-4,y-6,8,12,"#ffdc69");rect(x-1,y-5,3,10,"#fff4bc");rect(x-6,y+7,12,2,"#b87920");});
-   // Enemies: layered silhouettes, animated limbs, eye glow and ground shadows.
+   // Enemy archetypes: archers with a drawn bow, and heavy tankers in plated armor.
   enemies.forEach(e=>{
    if(!e.alive)return;
-   const x=e.x-cam,y=e.y,walk=Math.sin(performance.now()*.012+e.home)*2.2;
-   ctx.globalAlpha=.32;rect(x-2,world.ground-3,30,4,"#000");ctx.globalAlpha=1;
-   glow(x+13,y+14,34,"#fb456c",.20);
-   ctx.fillStyle="#151923";ctx.beginPath();ctx.moveTo(x+4,y+8);ctx.lineTo(x+22,y+7);ctx.lineTo(x+27,y+25);ctx.lineTo(x+22,y+30);ctx.lineTo(x+18,y+24);ctx.lineTo(x+12,y+31);ctx.lineTo(x+7,y+24);ctx.lineTo(x+1,y+27);ctx.closePath();ctx.fill();
-   rect(x+5,y+3,16,13,"#687c91");rect(x+3,y+8,20,11,"#3e5065");
-   rect(x+6,y+5,14,3,"#a9b8c7");rect(x+7,y+9,4,4,"#ff5578");rect(x+16,y+9,4,4,"#ff5578");
-   glow(x+9,y+11,10,"#ff315f",.52);glow(x+18,y+11,10,"#ff315f",.52);
-   rect(x+5,y+17,17,10,"#344355");rect(x+8,y+18,11,2,"#8495a7");rect(x+9,y+21,9,2,"#202a38");
-   rect(x+3,y+17,5,9,"#596b7d");rect(x+20,y+17,5,8,"#263244");
-   rect(x+6,y+26,6,5+walk,"#222b3b");rect(x+16,y+26,6,5-walk,"#222b3b");
-   rect(x+4,y+29+walk,8,2,"#7c8998");rect(x+15,y+29-walk,8,2,"#7c8998");
-   const wx=x-5-Math.sin(performance.now()*.004+e.home)*3;glow(wx,y+18,11,"#d946ef",.16);rect(wx,y+17,2,4,"#c084fc");
+   const x=e.x-cam,y=e.y,t=performance.now()*.012+e.home;
+   const walk=Math.sin(t)*2.1, flash=e.flash>0;
+   ctx.globalAlpha=.32;rect(x-3,world.ground-3,e.w+6,4,"#000");ctx.globalAlpha=1;
+   if(e.type==="archer"){
+    glow(x+13,y+13,34,"#fb456c",.18);
+    // Ragged hood and thin, agile silhouette.
+    ctx.fillStyle="#171522";ctx.beginPath();ctx.moveTo(x+3,y+7);ctx.lineTo(x+13,y-1);ctx.lineTo(x+23,y+7);ctx.lineTo(x+22,y+24);ctx.lineTo(x+17,y+30);ctx.lineTo(x+7,y+30);ctx.lineTo(x+2,y+22);ctx.closePath();ctx.fill();
+    rect(x+5,y+5,15,12,flash?"#fff":"#5a526e");rect(x+6,y+10,4,4,"#ff536f");rect(x+15,y+10,4,4,"#ff536f");
+    rect(x+6,y+18,14,9,"#343044");rect(x+7,y+27,5,4+walk,"#272334");rect(x+15,y+27,5,4-walk,"#272334");
+    // Bow and nocked arrow, pointed toward the player.
+    const face=player.x>e.x?1:-1,bx=x+13+face*8;
+    ctx.strokeStyle="#c9a46a";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx,y+8);ctx.quadraticCurveTo(bx+face*8,y+16,bx,y+25);ctx.stroke();
+    ctx.strokeStyle="#e9d5a5";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx,y+8);ctx.lineTo(bx,y+25);ctx.stroke();
+    rect(bx+face*1,y+15,face*8,2,"#f0d7a0");rect(bx+face*8,y+13,face*3,2,"#fff1c2");
+    glow(x+13,y+13,13,"#ff536f",.32);
+   }else{
+    // Heavy tanker: broad shoulders, iron helmet, reinforced chest and massive boots.
+    glow(x+17,y+19,44,"#f97316",.18);
+    ctx.fillStyle="#201a20";ctx.beginPath();ctx.moveTo(x+3,y+11);ctx.lineTo(x+6,y+2);ctx.lineTo(x+27,y+2);ctx.lineTo(x+32,y+12);ctx.lineTo(x+31,y+32);ctx.lineTo(x+25,y+38);ctx.lineTo(x+7,y+38);ctx.lineTo(x+1,y+31);ctx.closePath();ctx.fill();
+    rect(x+7,y+4,20,13,flash?"#fff":"#6f625d");rect(x+5,y+9,24,7,"#9a8877");rect(x+9,y+12,5,4,"#ffb15c");rect(x+20,y+12,5,4,"#ffb15c");
+    glow(x+11,y+14,12,"#fb923c",.55);glow(x+22,y+14,12,"#fb923c",.55);
+    rect(x+4,y+18,27,13,flash?"#fff":"#5b4a45");rect(x+1,y+18,10,10,"#8b7768");rect(x+24,y+18,10,10,"#8b7768");
+    rect(x+9,y+20,16,3,"#c4b5a5");rect(x+11,y+25,12,3,"#2c2528");
+    rect(x+7,y+30,8,6+walk*.35,"#43363a");rect(x+20,y+30,8,6-walk*.35,"#43363a");
+    rect(x+4,y+35+walk*.2,12,3,"#a18a78");rect(x+19,y+35-walk*.2,12,3,"#a18a78");
+    // Shoulder spikes and a glowing chest sigil.
+    for(let i=0;i<3;i++){ctx.fillStyle="#c4a78b";ctx.beginPath();ctx.moveTo(x+3+i*4,y+19);ctx.lineTo(x+5+i*4,y+13);ctx.lineTo(x+8+i*4,y+19);ctx.fill();}
+    rect(x+16,y+22,4,5,"#fb923c");glow(x+18,y+24,12,"#fb923c",.4);
+    if(e.charging>0){glow(x+17,y+25,45,"#fb923c",.25);rect(x-4,y+34,4,3,"#fb923c");rect(x+e.w,y+32,5,3,"#fb923c");}
+  }
+  });
+  // Glowing arrows have a warm trail and a sharp metal tip.
+  enemyArrows.forEach(a=>{
+   const x=a.x-cam,y=a.y;
+   ctx.save();ctx.translate(x,y);ctx.rotate(a.angle||0);
+   glow(0,0,15,"#fb923c",.24);
+   ctx.strokeStyle="#f6c77b";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(7,0);ctx.stroke();
+   ctx.fillStyle="#fff1c2";ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(4,-3);ctx.lineTo(4,3);ctx.closePath();ctx.fill();
+   rect(-13,-2,4,4,"#b45309");ctx.restore();
   });
   // Boss: armored silhouette, animated crown, spectral mantle, chest rune and orbiting runes.
   if(boss&&boss.alive){
@@ -920,7 +1039,7 @@ st.markdown("---")
 st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
 st.markdown(
     """
-    - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**.
+    - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**. Có thêm **Cung Thủ Bóng Tối** bắn tên và **Tanker Thiết Giáp** nhảy lên bệ cao, lao tới húc đẩy người chơi.
     - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
     - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, tro bay, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá và viền điện ảnh. Nhân vật có hoạt ảnh chạy/nhảy, áo choàng động, kiếm luôn hiển thị, đường chém phát sáng, bụi chân và hiệu ứng tiếp đất.
