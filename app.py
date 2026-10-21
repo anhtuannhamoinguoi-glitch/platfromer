@@ -338,10 +338,12 @@ function update(dt){
  if(left){player.vx-=accel*dt;player.face=-1;} if(right){player.vx+=accel*dt;player.face=1;}
  if(!left&&!right) player.vx*=Math.pow(.0008,dt);
  player.vx=Math.max(-speed,Math.min(speed,player.vx));
- if(jump && player.grounded){player.vy=-470;player.grounded=false;beep(360,.07,"square",.025);}
+ if(jump && player.grounded){player.vy=-470;player.grounded=false;addParticles(player.x+player.w/2,player.y+player.h,"#a7b8ff",7);beep(360,.07,"square",.025);}
  player.vy+=1150*dt; player.vy=Math.min(player.vy,700);
  // horizontal movement and world boundaries
  player.x+=player.vx*dt; player.x=Math.max(0,Math.min(world.length-player.w,player.x));
+ // Keep the prior grounded state for landing effects.
+ const wasGrounded=player.grounded;
  // collide with platforms while falling
  const oldY=player.y; player.y+=player.vy*dt; player.grounded=false;
  const floor=floorAt(player.x+player.w/2);
@@ -351,6 +353,7 @@ function update(dt){
    player.y=p.y-player.h;player.vy=0;player.grounded=true;
   }
  }
+ if(!wasGrounded && player.grounded){addParticles(player.x+player.w/2,player.y+player.h-1,"#a7b8ff",Math.abs(oldY-player.y)>28?10:5);if(Math.abs(oldY-player.y)>28)shake=Math.max(shake,.08);}
  if(player.y>H+80){
   if(!godMode){player.hp=Math.max(0,player.hp-1);noiseHit();shake=.2;}
   if(player.hp<=0){gameOver=true;beep(90,.5,"sawtooth",.06);}
@@ -746,46 +749,74 @@ function drawWorld(cam){
  ctx.strokeStyle="#e9c8ff";ctx.lineWidth=3;ctx.strokeRect(gx+4,gy+3,24,59);rect(gx+10,gy+13,4,4,"#f3d7ff");rect(gx+20,gy+30,4,4,"#f3d7ff");
  // coins: glowing gold pixel coins
  coinsList.forEach(c=>{if(c.taken)return;let wob=Math.sin(performance.now()/180+c.x)*3,x=c.x-cam,y=c.y+wob;glow(x,y,23,"#fbbf24",.3);rect(x-6,y-8,12,16,"#e9a52e");rect(x-4,y-10,8,2,"#ffe8a1");rect(x-4,y-6,8,12,"#ffdc69");rect(x-1,y-5,3,10,"#fff4bc");rect(x-6,y+7,12,2,"#b87920");});
- // enemies with glowing eyes and little shadows
- enemies.forEach(e=>{if(!e.alive)return;const x=e.x-cam,y=e.y;glow(x+13,y+15,28,"#fb456c",.16);ctx.globalAlpha=.35;rect(x+1,world.ground-3,25,4,"#000");ctx.globalAlpha=1;
-  rect(x+4,y+5,18,20,"#687c91");rect(x+1,y+12,24,14,"#35495f");rect(x+5,y+9,16,8,"#91a2b9");rect(x+5,y+12,5,4,"#ff5578");rect(x+16,y+12,5,4,"#ff5578");rect(x+4,y+26,7,5,"#222c40");rect(x+16,y+26,7,5,"#222c40");rect(x+8,y+7,3,2,"#dbeafe");
- });
- // boss silhouette with crown spikes, armor plates and health glow
- if(boss&&boss.alive){const x=boss.x-cam,y=boss.y;glow(x+31,y+35,85,"#d946ef",.2);rect(x+8,y+12,46,56,boss.flash?"#ffd2e1":"#492650");rect(x,y+28,62,36,boss.flash?"#ffd2e1":"#281b3d");rect(x+10,y+4,42,22,boss.flash?"#ffd2e1":"#70366f");
-  for(let i=0;i<5;i++){ctx.fillStyle="#b45a9f";ctx.beginPath();ctx.moveTo(x+9+i*10,y+7);ctx.lineTo(x+14+i*10,y-8-(i%2)*5);ctx.lineTo(x+19+i*10,y+7);ctx.fill();}
-  rect(x+14,y+15,10,7,"#ff426f");rect(x+38,y+15,10,7,"#ff426f");glow(x+19,y+18,15,"#fb376b",.65);glow(x+43,y+18,15,"#fb376b",.65);rect(x+6,y+65,14,11,"#191627");rect(x+42,y+65,14,11,"#191627");rect(x+10,y+36,9,13,"#8c4b91");rect(x+43,y+36,9,13,"#8c4b91");
- }
- // Animated boss projectiles, with a bright core and warning halo.
- bossProjectiles.forEach(p=>{glow(p.x-cam,p.y,27,"#d946ef",.48);rect(p.x-cam-p.r,p.y-p.r,p.r*2,p.r*2,"#8b2ba8");rect(p.x-cam-3,p.y-3,6,6,"#ffe4ff");});
+   // Enemies: layered silhouettes, animated limbs, eye glow and ground shadows.
+  enemies.forEach(e=>{
+   if(!e.alive)return;
+   const x=e.x-cam,y=e.y,walk=Math.sin(performance.now()*.012+e.home)*2.2;
+   ctx.globalAlpha=.32;rect(x-2,world.ground-3,30,4,"#000");ctx.globalAlpha=1;
+   glow(x+13,y+14,34,"#fb456c",.20);
+   ctx.fillStyle="#151923";ctx.beginPath();ctx.moveTo(x+4,y+8);ctx.lineTo(x+22,y+7);ctx.lineTo(x+27,y+25);ctx.lineTo(x+22,y+30);ctx.lineTo(x+18,y+24);ctx.lineTo(x+12,y+31);ctx.lineTo(x+7,y+24);ctx.lineTo(x+1,y+27);ctx.closePath();ctx.fill();
+   rect(x+5,y+3,16,13,"#687c91");rect(x+3,y+8,20,11,"#3e5065");
+   rect(x+6,y+5,14,3,"#a9b8c7");rect(x+7,y+9,4,4,"#ff5578");rect(x+16,y+9,4,4,"#ff5578");
+   glow(x+9,y+11,10,"#ff315f",.52);glow(x+18,y+11,10,"#ff315f",.52);
+   rect(x+5,y+17,17,10,"#344355");rect(x+8,y+18,11,2,"#8495a7");rect(x+9,y+21,9,2,"#202a38");
+   rect(x+3,y+17,5,9,"#596b7d");rect(x+20,y+17,5,8,"#263244");
+   rect(x+6,y+26,6,5+walk,"#222b3b");rect(x+16,y+26,6,5-walk,"#222b3b");
+   rect(x+4,y+29+walk,8,2,"#7c8998");rect(x+15,y+29-walk,8,2,"#7c8998");
+   const wx=x-5-Math.sin(performance.now()*.004+e.home)*3;glow(wx,y+18,11,"#d946ef",.16);rect(wx,y+17,2,4,"#c084fc");
+  });
+  // Boss: armored silhouette, animated crown, spectral mantle, chest rune and orbiting runes.
+  if(boss&&boss.alive){
+   const x=boss.x-cam,y=boss.y,t=performance.now()*.001,hover=Math.sin(t*2.4)*3,flash=boss.flash>0;
+   ctx.globalAlpha=.4;rect(x-8,world.ground-4,78,5,"#000");ctx.globalAlpha=1;
+   glow(x+31,y+37+hover,100,"#d946ef",.24+.05*Math.sin(t*3));
+   ctx.fillStyle="#21152f";ctx.beginPath();ctx.moveTo(x+10,y+20+hover);ctx.lineTo(x+52,y+20+hover);ctx.lineTo(x+62,y+69);ctx.lineTo(x+49,y+62);ctx.lineTo(x+39,y+77);ctx.lineTo(x+29,y+66);ctx.lineTo(x+14,y+76);ctx.lineTo(x+5,y+61);ctx.closePath();ctx.fill();
+   rect(x+8,y+17+hover,46,48,flash?"#ffd2e1":"#492650");rect(x+2,y+29+hover,58,32,flash?"#ffd2e1":"#281b3d");rect(x+12,y+5+hover,38,23,flash?"#ffd2e1":"#70366f");
+   for(let i=0;i<5;i++){const cx=x+9+i*10;ctx.fillStyle=i%2?"#8d4b91":"#b45a9f";ctx.beginPath();ctx.moveTo(cx,y+8+hover);ctx.lineTo(cx+5,y-7-(i%2)*5+hover);ctx.lineTo(cx+10,y+8+hover);ctx.closePath();ctx.fill();rect(cx+4,y-5-(i%2)*5+hover,2,4,"#f0abfc");}
+   rect(x+12,y+10+hover,38,14,"#201329");rect(x+15,y+15+hover,10,6,flash?"#fff":"#ff426f");rect(x+37,y+15+hover,10,6,flash?"#fff":"#ff426f");
+   glow(x+20,y+18+hover,18,"#fb376b",.72);glow(x+42,y+18+hover,18,"#fb376b",.72);
+   rect(x+26,y+36+hover,10,15,"#8c4b91");rect(x+29,y+39+hover,4,9,"#f0abfc");glow(x+31,y+44+hover,22,"#d946ef",.4);
+   rect(x+2,y+28+hover,13,13,flash?"#ffd2e1":"#8c4b91");rect(x+47,y+28+hover,13,13,flash?"#ffd2e1":"#8c4b91");
+   rect(x+6,y+39+hover,8,15,"#32213f");rect(x+48,y+39+hover,8,15,"#32213f");rect(x+7,y+62,14,12,"#191627");rect(x+42,y+62,14,12,"#191627");
+   for(let i=0;i<3;i++){const a=t*1.7+i*Math.PI*2/3,rx=x+31+Math.cos(a)*43,ry=y+37+Math.sin(a)*27;glow(rx,ry,12,"#d8b4fe",.25);rect(rx-2,ry-2,4,4,"#e9d5ff");}
+  }
+// Animated boss projectiles, with a bright core and warning halo.
+  bossProjectiles.forEach(p=>{const x=p.x-cam,pulse=1+.18*Math.sin(performance.now()*.02+p.x);glow(x,p.y,30,"#d946ef",.48);glow(x,p.y,14,"#f0abfc",.42);rect(x-p.r*pulse,p.y-p.r*pulse,p.r*2*pulse,p.r*2*pulse,"#8b2ba8");rect(x-3,p.y-3,6,6,"#ffe4ff");rect(x-12,p.y+4,4,3,"#c084fc");rect(x+8,p.y-7,3,3,"#f5d0fe");});
  if(checkpointNotice>0){
   ctx.save();ctx.globalAlpha=Math.min(1,checkpointNotice);rect(W/2-155,54,310,30,"#0b1a1a");ctx.strokeStyle="#5eead4";ctx.strokeRect(W/2-155,54,310,30);text("✦ CHECKPOINT: "+activeCheckpoint.label.toUpperCase()+" ✦",W/2,74,12,"#a7fff0","center");ctx.restore();
  }
- // player shadow, aura and detailed pixel knight
- const px=player.x-cam, py=player.y;const run=player.grounded&&Math.abs(player.vx)>20;const step=run?Math.sin(player.anim)*3:0;
- ctx.globalAlpha=.35;rect(px-3,world.ground-4,30,4,"#000");ctx.globalAlpha=1;
- glow(px+12,py+19,38,"#6d75ff",.13);
- // Pulsing soul-light around the knight, stronger while moving or attacking.
- const aura=.08+(Math.abs(player.vx)/220)*.07+(attackTimer>0?.18:0);
- glow(px+12,py+18,run?48:38,attackTimer>0?"#8be9ff":"#6d75ff",aura);
- if(run && Math.floor(performance.now()/95)%2===0){
-  rect(px+(player.face>0?-5:25),py+23,3,3,"#a5b4fc");
-  rect(px+(player.face>0?-10:29),py+29,2,2,"#818cf8");
- }
-
- if(invuln>0 && Math.floor(performance.now()/80)%2===0)ctx.globalAlpha=.42;
- // flowing scarf / cape
- rect(px+(player.face>0?-2:16),py+9,9,19,"#5c2879");rect(px+(player.face>0?-5:18),py+14,6,12,"#9b3f9b");rect(px+(player.face>0?-8:20),py+20,5,8,"#4b286c");
- // helmet and face slit
- rect(px+4,py+1,16,10,"#22283d");rect(px+2,py+4,20,8,"#414b6b");rect(px+5,py+2,14,3,"#7884a5");rect(px+5,py+8,14,4,"#151a2b");
- rect(px+(player.face>0?14:5),py+7,5,3,"#79e7ff");glow(px+(player.face>0?16:7),py+8,12,"#5ee7ff",.5);
- // torso armor and belt
- rect(px+4,py+13,16,14,"#313c59");rect(px+2,py+16,5,10,"#202940");rect(px+17,py+16,5,10,"#202940");rect(px+7,py+15,10,8,"#526482");rect(px+8,py+19,8,2,"#a4b6d1");rect(px+5,py+25,14,3,"#d4a65b");rect(px+10,py+25,4,3,"#fff0ad");
- // legs animate when running
- rect(px+5,py+27,6,7+step,"#667895");rect(px+14,py+27,6,7-step,"#667895");rect(px+3,py+31+step,8,3,"#20273d");rect(px+14,py+31-step,8,3,"#20273d");
- // sword and slash arc
- if(attackTimer>0){const sx=px+(player.face>0?21:-22),sy=py+12;glow(sx+10,sy+3,34,"#8be9ff",.4);rect(sx,sy,24,4,"#8be9ff");rect(sx+(player.face>0?15:2),sy-5,4,14,"#e4fbff");rect(sx+(player.face>0?7:10),sy-8,3,4,"#ffffff");ctx.strokeStyle="#b9f4ff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(px+12,py+17,25,player.face>0?-1.15:.05,player.face>0?.9:2.1);ctx.stroke();}
- if(invuln>0)ctx.globalAlpha=1;
- // floating particles
+   // Cinematic player sprite: animated cape, articulated limbs, armor highlights and sword trails.
+  const px=player.x-cam, py=player.y, moving=player.grounded&&Math.abs(player.vx)>20, airborne=!player.grounded;
+  const speedRatio=Math.min(1,Math.abs(player.vx)/240),runPhase=player.anim*1.55;
+  const stride=moving?Math.sin(runPhase)*4:0,bob=moving?Math.abs(Math.sin(runPhase))*1.5:airborne?-2:Math.sin(performance.now()*.003)*.7;
+  const attackProgress=attackTimer>0?1-Math.min(1,attackTimer/.22):0,face=player.face||1,fx=px+12,fy=py+18+bob;
+  const shadowScale=Math.max(.35,1-Math.max(0,world.ground-(py+player.h))/210);
+  ctx.globalAlpha=.32*shadowScale;ctx.beginPath();ctx.ellipse(fx,Math.min(world.ground-2,py+player.h+5),17*shadowScale,4*shadowScale,0,0,Math.PI*2);ctx.fillStyle="#000";ctx.fill();ctx.globalAlpha=1;
+  glow(fx,fy,airborne?43:38,"#6d75ff",.12+speedRatio*.08+(attackTimer>0?.2:0));glow(fx,Math.min(world.ground-4,py+player.h),25,"#5ee9d2",.08);
+  if(speedRatio>.72&&Math.floor(performance.now()/65)%2===0){ctx.globalAlpha=.16;rect(px-face*7,py+5,player.w,player.h,"#8b9cff");ctx.globalAlpha=1;}
+  ctx.save();ctx.translate(fx,0);ctx.scale(face,1);ctx.translate(-fx,0);
+  const bx=px,by=py+bob,capeWave=Math.sin(performance.now()*.012+player.vx*.01)*3+Math.min(5,Math.abs(player.vx)*.018);
+  if(invuln>0&&Math.floor(performance.now()/65)%2===0)ctx.globalAlpha=.42;
+  ctx.fillStyle="#24142f";ctx.beginPath();ctx.moveTo(bx+6,by+9);ctx.lineTo(bx+18,by+11);ctx.lineTo(bx+23+capeWave,by+23);ctx.lineTo(bx+17+capeWave,by+21);ctx.lineTo(bx+14+capeWave,by+31);ctx.lineTo(bx+9,by+25);ctx.lineTo(bx+3+capeWave*.5,by+28);ctx.closePath();ctx.fill();
+  rect(bx+7,by+12,9,14,"#5c2879");rect(bx+9,by+14,6,10,"#9b3f9b");
+  rect(bx+1,by+16+stride*.25,5,10,"#202940");rect(bx+1,by+15+stride*.25,6,5,"#697b9d");
+  const legA=airborne?-2:stride,legB=airborne?3:-stride;
+  rect(bx+5,by+26,6,7+legA*.45,"#667895");rect(bx+14,by+26,6,7+legB*.45,"#667895");
+  rect(bx+2,by+31+legA*.45,9,3,"#20273d");rect(bx+13,by+31+legB*.45,9,3,"#20273d");
+  rect(bx+4,by+29+legA*.35,6,2,"#a4b6d1");rect(bx+14,by+29+legB*.35,6,2,"#a4b6d1");
+  rect(bx+4,by+12,16,15,"#202940");rect(bx+3,by+14,5,10,"#414f70");rect(bx+16,by+14,6,10,"#414f70");
+  rect(bx+6,by+13,12,12,"#526482");rect(bx+7,by+14,10,3,"#8494b2");rect(bx+8,by+18,8,2,"#29364e");rect(bx+10,by+19,4,4,"#8be9ff");glow(bx+12,by+21,11,"#5ee7ff",.34);
+  rect(bx+5,by+25,14,3,"#d4a65b");rect(bx+10,by+25,4,3,"#fff0ad");rect(bx+8,by+8,8,6,"#a0a8bd");
+  rect(bx+4,by+1,16,10,"#22283d");rect(bx+2,by+4,20,8,"#414b6b");rect(bx+5,by+2,14,3,"#a7b4d0");rect(bx+4,by+5,3,5,"#7786a5");
+  rect(bx+5,by+8,14,4,"#151a2b");rect(bx+7,by+8,10,2,"#0b101b");rect(bx+14,by+7,5,3,"#79e7ff");glow(bx+16,by+8,13,"#5ee7ff",.62);
+  const slash=attackTimer>0?Math.sin(attackProgress*Math.PI):0;rect(bx+17,by+15-slash*2,5,9,"#293650");rect(bx+17,by+14-slash*2,7,5,"#7b8ca9");
+  ctx.save();ctx.translate(bx+20,by+20);ctx.rotate(attackTimer>0?(-.95+attackProgress*1.95):-.45);
+  glow(9,0,attackTimer>0?31:15,attackTimer>0?"#8be9ff":"#a7b8d5",attackTimer>0?.5:.13);
+  rect(0,-2,25,4,"#cbd5e1");rect(4,-1,18,2,"#f8fafc");rect(21,-2,5,4,"#8be9ff");rect(-4,-4,4,8,"#d4a65b");rect(-8,-2,5,4,"#76513a");rect(-10,-3,3,6,"#d4a65b");ctx.restore();ctx.restore();
+  if(invuln>0)ctx.globalAlpha=1;
+  if(attackTimer>0){const sx=px+(face>0?22:-22),sy=py+13+bob;ctx.save();ctx.globalAlpha=.8;ctx.strokeStyle="#8be9ff";ctx.lineWidth=4;ctx.beginPath();ctx.arc(px+12,sy+3,27,face>0?-1.15+attackProgress*.45:.05+attackProgress*.3,face>0?.85+attackProgress*.45:2.1+attackProgress*.3);ctx.stroke();ctx.strokeStyle="#f0fdff";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(px+12,sy+3,30,face>0?-1.05+attackProgress*.45:.15+attackProgress*.3,face>0?.75+attackProgress*.45:2+attackProgress*.3);ctx.stroke();glow(sx+7,sy+3,31,"#8be9ff",.38);for(let i=0;i<5;i++){const a=attackProgress*5+i*1.1;rect(sx+Math.cos(a)*14,sy+Math.sin(a)*12,2,2,i%2?"#fff":"#8be9ff");}ctx.restore();}
+  if(moving&&Math.floor(performance.now()/85)%3===0){const dx=px+(face<0?player.w+2:-3),dy=py+player.h-3;glow(dx,dy,9,"#a5b4fc",.16);rect(dx,dy,3,2,"#a5b4fc");}
+// floating particles
  particles.forEach(p=>{glow(p.x-cam,p.y,12,p.color,.16);rect(p.x-cam,p.y,4,4,p.color);});
 }
 function draw(){
@@ -809,7 +840,9 @@ function draw(){
  vignette.addColorStop(.7,"rgba(2,3,10,0.12)");
  vignette.addColorStop(1,"rgba(1,2,7,0.68)");
  ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
- // Subtle edge highlights make the scene feel framed like a dark-fantasy game.
+   // Sparse drifting ash particles add depth without external image assets.
+  const ashTime=performance.now()*.018;for(let i=0;i<34;i++){const ax=(i*83+ashTime*(i%3+1))%(W-12)+6,ay=(i*47+Math.sin(ashTime*.04+i)*9)%(H-20)+8;ctx.globalAlpha=.08+(i%4)*.025;rect(ax,ay,i%7===0?2:1,i%7===0?2:1,i%3===0?"#d8c5ff":"#b7c1d9");}ctx.globalAlpha=1;
+  // Subtle edge highlights make the scene feel framed like a dark-fantasy game.
  ctx.strokeStyle="rgba(204,176,125,0.24)";ctx.lineWidth=2;ctx.strokeRect(5,5,W-10,H-10);
  ctx.restore();
  ctx.restore();
@@ -890,7 +923,7 @@ st.markdown(
     - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**.
     - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
-    - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá, viền điện ảnh và hào quang nhân vật.
+    - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, tro bay, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá và viền điện ảnh. Nhân vật có hoạt ảnh chạy/nhảy, áo choàng động, kiếm luôn hiển thị, đường chém phát sáng, bụi chân và hiệu ứng tiếp đất.
     - Có checkpoint tự lưu và nút tiếp tục từ checkpoint; nhấn R sau khi thất bại để hồi sinh tại điểm gần nhất.
     - Boss có đạn linh hồn, tăng tốc độ tấn công khi còn dưới nửa máu.
     - Có nút cảm ứng cho điện thoại/tablet; giữ nguyên điều khiển bàn phím trên máy tính.
