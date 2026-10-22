@@ -27,7 +27,7 @@ st.title("SHADOWBOUND")
 st.caption("A DARK SOULSLIKE JOURNEY  ·  3 VÙNG ĐẤT  ·  1 KẺ CANH GIỮ HƯ VÔ")
 st.markdown(
     """
-    **Điều khiển** — A/D hoặc ←/→: di chuyển · Space/W/↑: nhảy · J: tấn công · M: âm thanh · R: hồi sinh tại checkpoint sau khi thất bại. Có nút cảm ứng trên điện thoại.
+    **Điều khiển** — A/D hoặc ←/→: di chuyển · Space/W/↑: nhảy · J: tấn công · H: dùng bình hồi máu (hồi 50% máu tối đa) · M: âm thanh · R: hồi sinh tại checkpoint sau khi thất bại. Có nút cảm ứng trên điện thoại.
     """
 )
 
@@ -42,14 +42,14 @@ game_html = r"""
 html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier New',monospace}
 .wrap{width:100%;max-width:1000px;margin:auto;padding:9px;background:linear-gradient(145deg,#171923,#080a10 45%,#15101d);border:1px solid #756044;border-radius:7px;box-shadow:0 0 0 1px #030404,0 0 26px #9b5de522,inset 0 0 28px #c2a56a12}
 .hud{display:grid;grid-template-columns:minmax(210px,1.5fr) minmax(100px,.7fr) minmax(120px,.8fr);gap:8px;align-items:center;padding:8px 4px 10px;color:#d8d2c3;font-size:12px;letter-spacing:.5px}
-.status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.stat em{font-style:normal;color:#c7a96b}
+.status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.potion-stat{padding-right:2px}.potion-btn{padding:5px 7px;background:#263021;border:1px solid #8aa36b;color:#d7f5a2;font:700 12px Georgia,serif;cursor:pointer;white-space:nowrap}.potion-btn:disabled{opacity:.42;cursor:not-allowed}.potion-btn:hover:not(:disabled){background:#39472a;border-color:#c7e68d}.stat em{font-style:normal;color:#c7a96b}
 .stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
 .save-panel{padding:10px 8px;margin-top:9px;border:1px solid #494438;background:linear-gradient(120deg,#10131a,#17121c);color:#cfc5ad;font-size:11px;line-height:1.4}.save-title{font-size:11px;letter-spacing:2px;color:#e3c47f;margin-bottom:8px}.save-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.save-slot{padding:8px;border:1px solid #514838;background:#0b0e12;text-align:center}.save-slot b{display:block;color:#e3d8c2;font-size:11px;margin-bottom:5px}.save-status{display:block;min-height:26px;color:#8e9b9d;font-size:9px;margin:5px 0}.save-actions{display:flex;gap:5px}.save-btn{flex:1;padding:7px 4px;border:1px solid #76613d;background:#252019;color:#e9d9b8;font:600 9px Georgia,serif;cursor:pointer;letter-spacing:.4px}.save-btn:hover:not(:disabled){background:#483222}.save-btn:disabled{opacity:.35;cursor:not-allowed}.save-note{color:#8f918d;font-size:9px;margin-top:8px}@media(max-width:600px){.save-grid{grid-template-columns:1fr}.save-slot{display:grid;grid-template-columns:1fr;}.save-status{min-height:0}}
 .mobile-controls{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:8px 0 2px;touch-action:none}.touch-btn{min-height:45px;border:1px solid #76613d;background:linear-gradient(145deg,#292333,#11131a);color:#f0dfbd;font:700 12px Georgia,serif;letter-spacing:1px;border-radius:5px;touch-action:none;user-select:none;-webkit-user-select:none}.touch-btn:active,.touch-btn.pressed{background:#68402e;border-color:#e7bd75;transform:translateY(1px)}@media(max-width:760px),(pointer:coarse){.mobile-controls{display:grid}.wrap{padding:5px}.hud{font-size:11px}.stage{touch-action:pan-y}.hint{font-size:9px}}
 .shop-item{padding:11px 8px;background:linear-gradient(160deg,#211b2c,#100f19);border:1px solid #65503c;box-shadow:inset 0 0 18px #a855f711;text-align:center;line-height:1.45;display:flex;flex-direction:column;align-items:center;gap:7px}.shop-item b{font-size:11px;letter-spacing:.5px;color:#f0dfbd}.shop-item p{font-size:10px;color:#aaa2b7;min-height:30px;margin:0}.shop-item small{font-size:10px;color:#e5bd70}.shop-icon{font-size:28px;color:#e6c47e;text-shadow:0 0 14px #e6c47e66}.buy-btn{padding:9px 6px;margin-top:auto;font-size:10px;letter-spacing:1px}.buy-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
-@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
+@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.potion-stat{padding-left:4px}.right-stats{gap:4px}.potion-btn{font-size:10px;padding:4px}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
 </style>
 </head>
 <body>
@@ -57,7 +57,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
   <div class="hud">
     <div class="status"><span class="label">Sinh mệnh · <span id="hptext">3 / 3</span></span><div class="bar"><div class="bar-fill" id="healthbar"></div></div><div class="subbar"><div class="subfill" id="staminabar"></div></div></div>
     <div class="stat"><small>KHU VỰC</small><b id="level">I · Rừng Tàn</b></div>
-    <div class="right-stats"><div class="stat"><small>LINH HỒN</small><b><em id="coins">◈ 0</em></b></div><div class="stat"><small>KỶ LỤC</small><b id="best">0</b></div></div>
+    <div class="right-stats"><div class="stat"><small>LINH HỒN</small><b><em id="coins">◈ 0</em></b></div><div class="stat"><small>KỶ LỤC</small><b id="best">0</b></div><div class="stat potion-stat"><small>THUỐC HỒI MÁU</small><b><button id="potionbtn" class="potion-btn" type="button">✚ <span id="potioncount">2</span> · H</button></b></div></div>
   </div>
   <div class="stage">
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
@@ -95,7 +95,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
     </div>
     <div class="save-note" id="save-message">Mỗi màn có một ô lưu riêng; checkpoint tự lưu khi kích hoạt. Dữ liệu nằm trong trình duyệt trên thiết bị hiện tại.</div>
   </div>
-  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
+  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; H HỒI MÁU &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
 <script>
 (() => {
@@ -117,6 +117,8 @@ let activeCheckpoint = {x:70, y:350, label:"Khởi đầu"};
 let checkpointNotice = 0;
 let bossProjectiles = [];
 let shopUpgrades = {hp:0, damage:0, speed:0};
+const MAX_POTIONS = 2;
+let potions = MAX_POTIONS;
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
 const bestEl = document.getElementById("best");
@@ -128,29 +130,28 @@ const levels = [
   pits:[[390,455],[630,690],[880,930],[1110,1160],[1390,1440],[1660,1710],[1950,2010]],
   coinSpots:[[180,380],[290,315],[520,265],[760,325],[1010,275],[1260,315],[1540,255],[1810,305],[2050,385]],
   enemies:[330,780,1040,1570,1870],
-  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0},
-   {type:"laser",x:760,y:245,damage:0.8,period:3.8,active:1.15,points:[[760,245],[900,245],[900,345],[1035,345],[1035,265]]}], boss:false},
+  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
  {name:"Hầm Ngục", length:2600, start:70, goal:2470, ground:430, checkpoints:[{x:1165,y:340,label:"Bàn thờ tro"},{x:1945,y:280,label:"Ấn phong ấn"}],
   platforms:[[210,350,120],[430,300,130],[680,350,120],[900,285,130],[1160,340,140],[1430,290,130],[1680,350,130],[1940,280,130],[2190,340,120]],
   pits:[[360,410],[620,670],[850,890],[1100,1150],[1390,1420],[1640,1670],[1900,1930],[2150,2180]],
   coinSpots:[[150,380],[250,305],[470,255],[720,305],[950,240],[1200,295],[1480,245],[1730,305],[1990,235],[2250,295]],
   enemies:[300,740,1020,1510,1810,2250],
-  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},
-   {type:"laser",x:1240,y:225,damage:0.85,period:3.3,active:1.35,points:[[1240,225],[1380,225],[1380,330],[1530,330],[1530,245]]}], boss:false},
+  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0}], boss:false},
  {name:"Đấu Trường", length:1800, start:70, goal:1680, ground:430, checkpoints:[{x:800,y:350,label:"Cổng đấu trường"}],
   platforms:[[280,350,130],[540,300,130],[800,350,140],[1080,300,130],[1350,350,130]],
   pits:[[430,480],[700,750],[970,1020],[1240,1290]],
   coinSpots:[[180,380],[330,305],[590,255],[850,305],[1130,255],[1400,305],[1580,385]],
   enemies:[350,880],
   traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:990,start:950,end:1290,damage:1.35,size:120,speed:275,pause:5.5,rollTime:3.2},
-   {type:"laser",x:600,y:235,damage:0.95,period:2.8,active:1.55,points:[[600,235],[745,235],[745,335],[885,335],[885,245]]}], boss:true}
+   {type:"laser",x:600,y:245,damage:1.0,period:2.5,active:1.75,bounce:true,bounceVx:410,bounceVy:190,beamWidth:16,points:[[530,145],[670,345]]}], boss:true}
 ];
 let world, player, enemies, coinsList, particles, boss, traps;
 
 function makeWorld(index) {
  const d = levels[index];
  world = d;
- player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:difficultySettings[difficulty].hp,maxHp:difficultySettings[difficulty].hp,anim:0};
+ const baseHp=difficultySettings[difficulty].hp+(shopUpgrades.hp||0);
+ player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:baseHp,maxHp:baseHp,anim:0};
  enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55*difficultySettings[difficulty].enemy,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
@@ -160,7 +161,10 @@ function makeWorld(index) {
  traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0,laserPhase:Math.random()*(t.period||2),laserOn:false}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
+ if(typeof potions !== "number" || !Number.isFinite(potions)) potions = MAX_POTIONS;
+ updatePotionUI();
 }
+potions = MAX_POTIONS;
 makeWorld(0);
 
 function beep(freq=440,duration=.08,type="square",volume=.035) {
@@ -194,6 +198,24 @@ function damage(amount=1){
  if(invuln>0 || gameOver || victory) return;
  player.hp=Math.max(0,player.hp-amount); invuln=1.25; shake=.25; noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
  if(player.hp<=0){gameOver=true; beep(90,.5,"sawtooth",.06);}
+ updatePotionUI();
+}
+function updatePotionUI(){
+ const count=document.getElementById("potioncount"),btn=document.getElementById("potionbtn");
+ if(count)count.textContent=String(potions);
+ if(btn)btn.disabled=potions<=0 || !player || player.hp>=player.maxHp || !started || gameOver || victory || shopOpen;
+}
+function usePotion(){
+ if(!started || gameOver || victory || shopOpen || potions<=0 || player.hp>=player.maxHp){
+  if(player && player.hp>=player.maxHp)document.getElementById("save-message").textContent="Máu đang đầy; hãy dùng bình hồi máu sau khi bị thương.";
+  else if(potions<=0)document.getElementById("save-message").textContent="Bạn đã dùng hết 2 bình hồi máu của lượt chơi này.";
+  updatePotionUI();return;
+ }
+ const before=player.hp, heal=Math.max(1,Math.ceil(player.maxHp*0.5));
+ player.hp=Math.min(player.maxHp,player.hp+heal);potions--;invuln=Math.max(invuln,.45);
+ addParticles(player.x+player.w/2,player.y+player.h/2,"#9df59a",18);beep(720,.13,"sine",.05);
+ document.getElementById("save-message").textContent="Đã dùng bình hồi máu: +"+(player.hp-before)+" máu. Còn "+potions+" bình.";
+ updatePotionUI();persistCheckpoint();
 }
 function attack(){
  if(!started || attackTimer>0 || gameOver || victory) return;
@@ -202,7 +224,7 @@ function attack(){
  enemies.forEach(e=>{if(e.alive && hit(range,e)){e.alive=false;score+=100;addParticles(e.x+13,e.y+12,"#a9c6d9",12);beep(620,.09);}});
  if(boss && boss.alive && hit(range,boss)){boss.hp-=1+shopUpgrades.damage;boss.flash=.18;score+=25;addParticles(boss.x+boss.w/2,boss.y+25,"#fca5a5",8);beep(170,.08,"sawtooth",.05);if(boss.hp<=0){boss.alive=false;score+=1000;addParticles(boss.x+30,boss.y+30,"#e879f9",30);}}
 }
-function resetGame(){score=0;coins=0;levelIndex=0;shopOpen=false;shopUpgrades={hp:0,damage:0,speed:0};document.getElementById("shopmenu").style.display="none";makeWorld(0);beep(500,.08);}
+function resetGame(){score=0;coins=0;levelIndex=0;potions=MAX_POTIONS;shopOpen=false;shopUpgrades={hp:0,damage:0,speed:0};document.getElementById("shopmenu").style.display="none";makeWorld(0);beep(500,.08);}
 function nextLevel(){
  if(levelIndex<levels.length-1){
   levelIndex++;shopOpen=true;
@@ -244,7 +266,7 @@ function saveBest(){
 }
 function persistCheckpoint(){
  try{
-  localStorage.setItem(AUTO_CHECKPOINT_KEY,JSON.stringify({version:2,savedAt:Date.now(),levelIndex,x:activeCheckpoint.x,y:activeCheckpoint.y,label:activeCheckpoint.label,difficulty,score,coins:godMode?0:coins,shopUpgrades}));
+  localStorage.setItem(AUTO_CHECKPOINT_KEY,JSON.stringify({version:2,savedAt:Date.now(),levelIndex,x:activeCheckpoint.x,y:activeCheckpoint.y,label:activeCheckpoint.label,difficulty,score,coins:godMode?0:coins,shopUpgrades,potions}));
  }catch(e){}
 }
 function activateCheckpoint(cp){
@@ -266,7 +288,7 @@ function resumeCheckpoint(){
  levelIndex=data.levelIndex;makeWorld(levelIndex);
  activeCheckpoint={x:Number(data.x)||levels[levelIndex].start,y:Number(data.y)||350,label:data.label||"Checkpoint"};
  player.x=activeCheckpoint.x;player.y=activeCheckpoint.y;player.vy=0;player.grounded=false;
- score=Number(data.score)||0;coins=godMode?INFINITE_COINS:(Number(data.coins)||0);shopUpgrades={hp:0,damage:0,speed:0,...(data.shopUpgrades||{})};
+ score=Number(data.score)||0;coins=godMode?INFINITE_COINS:(Number(data.coins)||0);shopUpgrades={hp:0,damage:0,speed:0,...(data.shopUpgrades||{})};potions=Number.isFinite(data.potions)?Math.max(0,Math.min(MAX_POTIONS,data.potions)):MAX_POTIONS;updatePotionUI();
  started=true;gameOver=false;victory=false;shopOpen=false;
  document.getElementById("mainmenu").style.display="none";document.getElementById("shopmenu").style.display="none";
  document.getElementById("save-message").textContent="Đã tiếp tục từ checkpoint: "+activeCheckpoint.label+".";canvas.focus();beep(560,.1,"triangle");
@@ -299,7 +321,7 @@ function saveLevelSlot(index){
   beep(130,.1,"square");return;
  }
  try{
-  const data={version:1,savedAt:Date.now(),levelIndex:index,difficulty,score,coins,shopUpgrades,
+  const data={version:2,savedAt:Date.now(),levelIndex:index,difficulty,score,coins,shopUpgrades,potions,
    player:JSON.parse(JSON.stringify(player)),enemies:JSON.parse(JSON.stringify(enemies)),coinsList:JSON.parse(JSON.stringify(coinsList)),
    boss:boss?JSON.parse(JSON.stringify(boss)):null,traps:JSON.parse(JSON.stringify(traps)),checkpoint:JSON.parse(JSON.stringify(activeCheckpoint)),started:true};
   localStorage.setItem(saveKey(index),JSON.stringify(data));
@@ -318,7 +340,7 @@ function loadLevelSlot(index){
   levelIndex=index;makeWorld(index);
   player=data.player;enemies=data.enemies;coinsList=data.coinsList;boss=data.boss;traps=data.traps;
   activeCheckpoint=data.checkpoint&&Number.isFinite(data.checkpoint.x)&&Number.isFinite(data.checkpoint.y)?data.checkpoint:{x:levels[index].start,y:350,label:"Khởi đầu"};
-  score=data.score||0;coins=godMode?INFINITE_COINS:(data.coins||0);shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};
+  score=data.score||0;coins=godMode?INFINITE_COINS:(data.coins||0);shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};potions=Number.isFinite(data.potions)?Math.max(0,Math.min(MAX_POTIONS,data.potions)):MAX_POTIONS;updatePotionUI();
   started=true;gameOver=false;victory=false;shopOpen=false;attackTimer=0;invuln=0;shake=0;
   document.getElementById("mainmenu").style.display="none";
   document.getElementById("shopmenu").style.display="none";
@@ -428,11 +450,17 @@ function update(dt){
    const flame={x:t.x-14,y:world.ground-flameH,w:28,h:flameH};
    if(t.flameOn&&hit(player,flame)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.3;addParticles(t.x,world.ground-45,"#ff8738",10);beep(95,.12,"sawtooth",.045);}
   } else if(t.type==="laser"){
-   // Laser pulses on/off; its route has at most three reflections at solid mirror objects.
+   // Laser appears only in the final arena. A large diagonal beam bounces across the whole arena.
    const period=t.period/(difficulty==="hard"?1.2:difficulty==="easy"?0.88:1);
    const active=t.active*(difficulty==="hard"?1.18:difficulty==="easy"?0.78:1);
    t.laserPhase=(t.laserPhase+dt)%period;
    t.laserOn=t.laserPhase<active;
+   if(t.bounce && levelIndex===2){
+    t.x+=(t.bounceVx||410)*t.dir*dt;t.y+=(t.bounceVy||190)*(t.vertDir||1)*dt;
+    if(t.x<120){t.x=120;t.dir=1;} if(t.x>world.length-120){t.x=world.length-120;t.dir=-1;}
+    if(t.y<95){t.y=95;t.vertDir=1;} if(t.y>world.ground-75){t.y=world.ground-75;t.vertDir=-1;}
+    t.points=[[t.x-100,t.y-145],[t.x+100,t.y+145]];
+   }
    if(t.laserOn && t.hitCooldown<=0){
     const pts=t.points||[]; let hitBeam=false;
     for(let i=0;i<pts.length-1;i++){
@@ -440,9 +468,9 @@ function update(dt){
      const dx=b[0]-a[0],dy=b[1]-a[1],len2=dx*dx+dy*dy;
      const u=Math.max(0,Math.min(1,((px-a[0])*dx+(py-a[1])*dy)/(len2||1)));
      const qx=a[0]+u*dx,qy=a[1]+u*dy;
-     if(Math.hypot(px-qx,py-qy)<13){hitBeam=true;break;}
+     if(Math.hypot(px-qx,py-qy)<(t.beamWidth||16)+18){hitBeam=true;break;}
     }
-    if(hitBeam){damage(t.damage);t.hitCooldown=1.05;addParticles(player.x+12,player.y+16,"#ff4d6d",12);beep(150,.1,"sawtooth",.045);}
+    if(hitBeam){damage(t.damage);t.hitCooldown=1.05;addParticles(player.x+12,player.y+16,"#ff4d6d",16);beep(150,.1,"sawtooth",.045);}
    }
   }
  });
@@ -702,10 +730,10 @@ function drawWorld(cam){
    if(t.laserOn&&pts.length>1){
     for(let i=0;i<pts.length-1;i++){
      const a=pts[i],b=pts[i+1],ax=a[0]-cam,bx=b[0]-cam;
-     glow((ax+bx)/2,(a[1]+b[1])/2,22,"#ff244f",.2);
-     ctx.save();ctx.strokeStyle="#ff3158";ctx.lineWidth=7;ctx.globalAlpha=.28;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
-     ctx.strokeStyle="#ff496b";ctx.lineWidth=3;ctx.globalAlpha=.9;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
-     ctx.strokeStyle="#ffe8ed";ctx.lineWidth=1;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();ctx.restore();
+     glow((ax+bx)/2,(a[1]+b[1])/2,t.beamWidth?48:22,"#ff244f",t.beamWidth?.38:.2);
+     ctx.save();ctx.strokeStyle="#ff3158";ctx.lineWidth=t.beamWidth||7;ctx.globalAlpha=.42;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ff496b";ctx.lineWidth=t.beamWidth?Math.max(5,t.beamWidth*.55):3;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ffe8ed";ctx.lineWidth=t.beamWidth?3:1;ctx.globalAlpha=.98;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();ctx.restore();
     }
    } else if(pts.length>1){const a=pts[0],b=pts[1];ctx.save();ctx.strokeStyle="#ff526e";ctx.lineWidth=2;ctx.globalAlpha=.25;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();ctx.restore();}
   }
@@ -862,6 +890,7 @@ function draw(){
  document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
  document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
+ updatePotionUI();
  document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
  if(gameOver||victory)saveBest();
@@ -869,8 +898,9 @@ function draw(){
 function loop(t){const dt=(t-lastTime)/1000||0;lastTime=t;update(dt);draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 document.querySelectorAll(".diff-btn").forEach(btn=>btn.addEventListener("click",()=>{difficulty=btn.dataset.diff;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b===btn));document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;makeWorld(levelIndex); }));
-document.getElementById("startbtn").addEventListener("click",()=>{score=0;coins=0;levelIndex=0;shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();persistCheckpoint();beep(330,.08,"triangle",.025);});
+document.getElementById("startbtn").addEventListener("click",()=>{score=0;coins=0;levelIndex=0;potions=MAX_POTIONS;shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();persistCheckpoint();beep(330,.08,"triangle",.025);});
 document.getElementById("resumebtn").addEventListener("click",resumeCheckpoint);
+document.getElementById("potionbtn").addEventListener("click",usePotion);
 document.querySelectorAll(".buy-btn").forEach(btn=>btn.addEventListener("click",()=>buyItem(btn.dataset.item)));
 document.getElementById("continuebtn").addEventListener("click",()=>{
  shopOpen=false;document.getElementById("shopmenu").style.display="none";
@@ -902,6 +932,7 @@ window.addEventListener("keydown",e=>{
  keys[k]=true;
  if(k==="j"||k==="J")attack();
  if(k==="m"||k==="M"){audioOn=!audioOn;beep(500,.06);}
+ if(k==="h"||k==="H")usePotion();
  if((k==="r"||k==="R")&&gameOver)retryFromCheckpoint();
  if((k==="r"||k==="R")&&victory)resetGame();
 });
@@ -914,7 +945,7 @@ canvas.focus();
 </html>
 """
 
-components.html(game_html, height=820, scrolling=False)
+components.html(game_html, height=1040, scrolling=False)
 
 st.markdown("---")
 st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
@@ -926,6 +957,8 @@ st.markdown(
     - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, tro bay, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá và viền điện ảnh. Nhân vật có hoạt ảnh chạy/nhảy, áo choàng động, kiếm luôn hiển thị, đường chém phát sáng, bụi chân và hiệu ứng tiếp đất.
     - Có checkpoint tự lưu và nút tiếp tục từ checkpoint; nhấn R sau khi thất bại để hồi sinh tại điểm gần nhất.
     - Boss có đạn linh hồn, tăng tốc độ tấn công khi còn dưới nửa máu.
+    - Có 2 bình hồi máu mỗi lượt; mỗi bình hồi 50% máu tối đa. Dùng nút ✚ trên HUD hoặc nhấn H; số bình được lưu cùng tiến trình.
+    - Bẫy laser chỉ xuất hiện ở màn III, có kích thước lớn và di chuyển bật nảy ngang/dọc khắp đấu trường.
     - Có nút cảm ứng cho điện thoại/tablet; giữ nguyên điều khiển bàn phím trên máy tính.
     - Có 3 ô lưu thủ công riêng cho từng màn; dữ liệu lưu trong trình duyệt trên thiết bị hiện tại, chưa đồng bộ giữa nhiều máy.
     - Đồ họa pixel, bẫy, hiệu ứng và âm thanh được tạo bằng Canvas/Web Audio nên không cần tải asset ngoài.
