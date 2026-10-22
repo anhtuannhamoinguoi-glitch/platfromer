@@ -1,8 +1,5 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import base64
-import json
-from pathlib import Path
 
 st.set_page_config(
     page_title="Shadowbound: Sinh Tồn Trong Bóng Tối",
@@ -30,7 +27,7 @@ st.title("SHADOWBOUND")
 st.caption("A DARK SOULSLIKE JOURNEY  ·  3 VÙNG ĐẤT  ·  1 KẺ CANH GIỮ HƯ VÔ")
 st.markdown(
     """
-    **Điều khiển** — A/D hoặc ←/→: di chuyển · Space/W/↑: nhảy · J: tấn công · M: âm thanh · R: hồi sinh tại checkpoint sau khi thất bại. Có nút cảm ứng trên điện thoại.
+    **Điều khiển** — A/D hoặc ←/→: di chuyển · Space/W/↑: nhảy · J: tấn công · H: dùng bình hồi máu (hồi 50% máu tối đa) · M: âm thanh · R: hồi sinh tại checkpoint sau khi thất bại. Có nút cảm ứng trên điện thoại.
     """
 )
 
@@ -45,15 +42,14 @@ game_html = r"""
 html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier New',monospace}
 .wrap{width:100%;max-width:1000px;margin:auto;padding:9px;background:linear-gradient(145deg,#171923,#080a10 45%,#15101d);border:1px solid #756044;border-radius:7px;box-shadow:0 0 0 1px #030404,0 0 26px #9b5de522,inset 0 0 28px #c2a56a12}
 .hud{display:grid;grid-template-columns:minmax(210px,1.5fr) minmax(100px,.7fr) minmax(120px,.8fr);gap:8px;align-items:center;padding:8px 4px 10px;color:#d8d2c3;font-size:12px;letter-spacing:.5px}
-.status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.stat em{font-style:normal;color:#c7a96b}
-.audio-panel{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 4px 8px;font-size:10px;color:#bdb8aa}.audio-btn{border:1px solid #76613d;background:#201b20;color:#ead8b4;padding:6px 9px;font:600 10px Georgia,serif;letter-spacing:.5px;cursor:pointer}.audio-btn:hover{background:#3c2b2b}.audio-panel input{width:90px;accent-color:#c7a96b}.audio-label{color:#8e8a7e;letter-spacing:1px}@media(max-width:600px){.audio-panel{justify-content:center;flex-wrap:wrap}}
+.status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.potion-stat{padding-right:2px}.potion-btn{padding:5px 7px;background:#263021;border:1px solid #8aa36b;color:#d7f5a2;font:700 12px Georgia,serif;cursor:pointer;white-space:nowrap}.potion-btn:disabled{opacity:.42;cursor:not-allowed}.potion-btn:hover:not(:disabled){background:#39472a;border-color:#c7e68d}.stat em{font-style:normal;color:#c7a96b}
 .stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
 .save-panel{padding:10px 8px;margin-top:9px;border:1px solid #494438;background:linear-gradient(120deg,#10131a,#17121c);color:#cfc5ad;font-size:11px;line-height:1.4}.save-title{font-size:11px;letter-spacing:2px;color:#e3c47f;margin-bottom:8px}.save-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.save-slot{padding:8px;border:1px solid #514838;background:#0b0e12;text-align:center}.save-slot b{display:block;color:#e3d8c2;font-size:11px;margin-bottom:5px}.save-status{display:block;min-height:26px;color:#8e9b9d;font-size:9px;margin:5px 0}.save-actions{display:flex;gap:5px}.save-btn{flex:1;padding:7px 4px;border:1px solid #76613d;background:#252019;color:#e9d9b8;font:600 9px Georgia,serif;cursor:pointer;letter-spacing:.4px}.save-btn:hover:not(:disabled){background:#483222}.save-btn:disabled{opacity:.35;cursor:not-allowed}.save-note{color:#8f918d;font-size:9px;margin-top:8px}@media(max-width:600px){.save-grid{grid-template-columns:1fr}.save-slot{display:grid;grid-template-columns:1fr;}.save-status{min-height:0}}
 .mobile-controls{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:8px 0 2px;touch-action:none}.touch-btn{min-height:45px;border:1px solid #76613d;background:linear-gradient(145deg,#292333,#11131a);color:#f0dfbd;font:700 12px Georgia,serif;letter-spacing:1px;border-radius:5px;touch-action:none;user-select:none;-webkit-user-select:none}.touch-btn:active,.touch-btn.pressed{background:#68402e;border-color:#e7bd75;transform:translateY(1px)}@media(max-width:760px),(pointer:coarse){.mobile-controls{display:grid}.wrap{padding:5px}.hud{font-size:11px}.stage{touch-action:pan-y}.hint{font-size:9px}}
 .shop-item{padding:11px 8px;background:linear-gradient(160deg,#211b2c,#100f19);border:1px solid #65503c;box-shadow:inset 0 0 18px #a855f711;text-align:center;line-height:1.45;display:flex;flex-direction:column;align-items:center;gap:7px}.shop-item b{font-size:11px;letter-spacing:.5px;color:#f0dfbd}.shop-item p{font-size:10px;color:#aaa2b7;min-height:30px;margin:0}.shop-item small{font-size:10px;color:#e5bd70}.shop-icon{font-size:28px;color:#e6c47e;text-shadow:0 0 14px #e6c47e66}.buy-btn{padding:9px 6px;margin-top:auto;font-size:10px;letter-spacing:1px}.buy-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
-@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
+@media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.potion-stat{padding-left:4px}.right-stats{gap:4px}.potion-btn{font-size:10px;padding:4px}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
 </style>
 </head>
 <body>
@@ -61,13 +57,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
   <div class="hud">
     <div class="status"><span class="label">Sinh mệnh · <span id="hptext">3 / 3</span></span><div class="bar"><div class="bar-fill" id="healthbar"></div></div><div class="subbar"><div class="subfill" id="staminabar"></div></div></div>
     <div class="stat"><small>KHU VỰC</small><b id="level">I · Rừng Tàn</b></div>
-    <div class="right-stats"><div class="stat"><small>LINH HỒN</small><b><em id="coins">◈ 0</em></b></div><div class="stat"><small>KỶ LỤC</small><b id="best">0</b></div></div>
-  </div>
-  <div class="audio-panel" aria-label="Cài đặt âm thanh">
-    <span class="audio-label">ÂM THANH</span>
-    <button class="audio-btn" id="audioToggle" type="button">♪ ĐANG BẬT</button>
-    <label for="volumeSlider">Âm lượng</label>
-    <input id="volumeSlider" type="range" min="0" max="100" value="55" aria-label="Âm lượng tổng">
+    <div class="right-stats"><div class="stat"><small>LINH HỒN</small><b><em id="coins">◈ 0</em></b></div><div class="stat"><small>KỶ LỤC</small><b id="best">0</b></div><div class="stat potion-stat"><small>THUỐC HỒI MÁU</small><b><button id="potionbtn" class="potion-btn" type="button">✚ <span id="potioncount">2</span> · H</button></b></div></div>
   </div>
   <div class="stage">
     <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game Shadowbound"></canvas>
@@ -105,7 +95,7 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
     </div>
     <div class="save-note" id="save-message">Mỗi màn có một ô lưu riêng; checkpoint tự lưu khi kích hoạt. Dữ liệu nằm trong trình duyệt trên thiết bị hiện tại.</div>
   </div>
-  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
+  <div class="hint">A/D hoặc ←/→ DI CHUYỂN &nbsp; · &nbsp; SPACE NHẢY &nbsp; · &nbsp; J TẤN CÔNG &nbsp; · &nbsp; H HỒI MÁU &nbsp; · &nbsp; M ÂM THANH &nbsp; · &nbsp; R CHƠI LẠI &nbsp; · &nbsp; ĐÁ KHỔNG LỒ RƠI TỪ TRÊN XUỐNG (NGHỈ LÂU) / LỬA</div>
 </div>
 <script>
 (() => {
@@ -116,8 +106,6 @@ ctx.imageSmoothingEnabled = false;
 const W = canvas.width, H = canvas.height;
 const keys = {};
 let audioOn = true, audioCtx = null, lastTime = 0, gameOver = false, victory = false, started = false;
-let masterVolume = 0.55, musicTimer = null, musicStep = 0, musicNodes = [], musicLevel = -1, musicGain = null, sfxGain = null;
-let decodedAudio = {}, audioLoadPromise = null, ambientSource = null, lastAudioGameOver = false, lastAudioVictory = false;
 let difficulty = "normal";
 const difficultySettings = {easy:{hp:5,enemy:0.78,trap:0.78,pause:1.45,desc:"Nhiều máu hơn, quái và bẫy chậm hơn."},normal:{hp:3,enemy:1,trap:1,pause:1,desc:"Thử thách cân bằng, phù hợp để làm quen."},hard:{hp:2,enemy:1.32,trap:1.28,pause:0.68,desc:"Ít máu, quái nhanh; lửa phun ở nhiều độ cao khác nhau."}};
 let score = 0, coins = 0, levelIndex = 0, attackTimer = 0, invuln = 0, shake = 0;
@@ -129,6 +117,8 @@ let activeCheckpoint = {x:70, y:350, label:"Khởi đầu"};
 let checkpointNotice = 0;
 let bossProjectiles = [];
 let shopUpgrades = {hp:0, damage:0, speed:0};
+const MAX_POTIONS = 2;
+let potions = MAX_POTIONS;
 let best = 0;
 try { best = Number(localStorage.getItem("shadowbound_best") || 0); } catch(e) {}
 const bestEl = document.getElementById("best");
@@ -140,139 +130,54 @@ const levels = [
   pits:[[390,455],[630,690],[880,930],[1110,1160],[1390,1440],[1660,1710],[1950,2010]],
   coinSpots:[[180,380],[290,315],[520,265],[760,325],[1010,275],[1260,315],[1540,255],[1810,305],[2050,385]],
   enemies:[330,780,1040,1570,1870],
-  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0},
-   {type:"laser",x:760,y:245,damage:0.8,period:3.8,active:1.15,points:[[760,245],[900,245],[900,345],[1035,345],[1035,265]]}], boss:false},
+  traps:[{type:"boulder",x:500,start:470,end:820,damage:1.2,size:104,speed:245,pause:4.8,rollTime:2.8},{type:"fire",x:1015,damage:0.65,period:3.2,active:1.15},{type:"fire",x:1760,damage:0.65,period:2.8,active:1.0}], boss:false},
  {name:"Hầm Ngục", length:2600, start:70, goal:2470, ground:430, checkpoints:[{x:1165,y:340,label:"Bàn thờ tro"},{x:1945,y:280,label:"Ấn phong ấn"}],
   platforms:[[210,350,120],[430,300,130],[680,350,120],[900,285,130],[1160,340,140],[1430,290,130],[1680,350,130],[1940,280,130],[2190,340,120]],
   pits:[[360,410],[620,670],[850,890],[1100,1150],[1390,1420],[1640,1670],[1900,1930],[2150,2180]],
   coinSpots:[[150,380],[250,305],[470,255],[720,305],[950,240],[1200,295],[1480,245],[1730,305],[1990,235],[2250,295]],
   enemies:[300,740,1020,1510,1810,2250],
-  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},
-   {type:"laser",x:1240,y:225,damage:0.85,period:3.3,active:1.35,points:[[1240,225],[1380,225],[1380,330],[1530,330],[1530,245]]}], boss:false},
+  traps:[{type:"boulder",x:690,start:650,end:1010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0},{type:"fire",x:1210,damage:0.7,period:2.7,active:1.15},{type:"boulder",x:1690,start:1650,end:2010,damage:1.3,size:112,speed:260,pause:5.2,rollTime:3.0}], boss:false},
  {name:"Đấu Trường", length:1800, start:70, goal:1680, ground:430, checkpoints:[{x:800,y:350,label:"Cổng đấu trường"}],
   platforms:[[280,350,130],[540,300,130],[800,350,140],[1080,300,130],[1350,350,130]],
   pits:[[430,480],[700,750],[970,1020],[1240,1290]],
   coinSpots:[[180,380],[330,305],[590,255],[850,305],[1130,255],[1400,305],[1580,385]],
   enemies:[350,880],
   traps:[{type:"fire",x:620,damage:0.75,period:2.5,active:1.1},{type:"boulder",x:990,start:950,end:1290,damage:1.35,size:120,speed:275,pause:5.5,rollTime:3.2},
-   {type:"laser",x:600,y:235,damage:0.95,period:2.8,active:1.55,points:[[600,235],[745,235],[745,335],[885,335],[885,245]]}], boss:true}
+   {type:"laser",x:600,y:245,damage:1.0,period:2.5,active:1.75,bounce:true,bounceVx:410,bounceVy:190,beamWidth:16,points:[[530,145],[670,345]]}], boss:true}
 ];
 let world, player, enemies, coinsList, particles, boss, traps;
-let enemyArrows = [];
 
 function makeWorld(index) {
  const d = levels[index];
  world = d;
- player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:difficultySettings[difficulty].hp,maxHp:difficultySettings[difficulty].hp,anim:0};
- enemies = d.enemies.map((x,i)=>{
-  // Alternate enemy roles across each level so both new archetypes appear in every region.
-  const type=(i%2===0)?"archer":"tanker";
-  return {type,x,y:390,w:type==="tanker"?34:26,h:type==="tanker"?38:30,
-   vx:(i%2?1:-1)*(type==="tanker"?42:48)*difficultySettings[difficulty].enemy,
-   vy:0,grounded:false,alive:true,home:x,range:type==="tanker"?110:95,hp:type==="tanker"?3:2,
-   maxHp:type==="tanker"?3:2,shotCooldown:1.1+Math.random()*1.2,flash:0,
-   jumpCooldown:.7+Math.random(),chargeCooldown:1.3+Math.random(),charging:0};
- });
- enemyArrows = [];
+ const baseHp=difficultySettings[difficulty].hp+(shopUpgrades.hp||0);
+ player = {x:d.start,y:350,w:24,h:34,vx:0,vy:0,grounded:false,face:1,hp:baseHp,maxHp:baseHp,anim:0};
+ enemies = d.enemies.map((x,i)=>({x,y:390,w:26,h:30,vx:(i%2?1:-1)*55*difficultySettings[difficulty].enemy,alive:true,home:x,range:75,hp:1}));
  coinsList = d.coinSpots.map(([x,y])=>({x,y,r:8,taken:false}));
  particles = [];
  bossProjectiles = [];
- enemyArrows = [];
  activeCheckpoint = {x:d.start, y:350, label:"Khởi đầu"};
  checkpointNotice = 0;
  traps = (d.traps || []).map((t,i)=>({...t,damage:t.damage*(difficulty==="easy"?0.78:difficulty==="hard"?1.2:1),period:t.period? t.period/difficultySettings[difficulty].trap:t.period,active:t.active,dropSpeed:(t.dropSpeed||620)*difficultySettings[difficulty].trap,baseX:t.x,dir:i%2===0?1:-1,phase:Math.random()*(t.period||2),rolling:false,state:"rest",y:-(t.size||108)-10,flameHeight:t.type==="fire"?(difficulty==="hard"?[48,72,98,126][Math.floor(Math.random()*4)]:difficulty==="easy"?58:78):78,pauseTimer:(t.type==="boulder"?(t.pause||6)*difficultySettings[difficulty].pause*(0.8+Math.random()*0.35):0),rollTimer:0,hitCooldown:0,impactTimer:0,laserPhase:Math.random()*(t.period||2),laserOn:false}));
  boss = d.boss ? {x:1320,y:350,w:62,h:76,hp:8,maxHp:8,vx:70,alive:true,flash:0,attack:0} : null;
  gameOver = false; victory = false; attackTimer = 0; invuln = 0; shake = 0;
+ if(typeof potions !== "number" || !Number.isFinite(potions)) potions = MAX_POTIONS;
+ updatePotionUI();
 }
+potions = MAX_POTIONS;
 makeWorld(0);
 
-async function loadAudioAssets(){
- if(audioLoadPromise)return audioLoadPromise;
- audioLoadPromise=(async()=>{
-  if(!ensureAudio())return;
-  for(const [name,b64] of Object.entries(AUDIO_DATA||{})){
-   try{
-    const binary=atob(b64), bytes=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-    decodedAudio[name]=await audioCtx.decodeAudioData(bytes.buffer);
-   }catch(e){console.warn("Không tải được âm thanh:",name,e);}
-  }
- })();
- return audioLoadPromise;
-}
-async function playSample(name,volume=1){
- if(!audioOn||!ensureAudio())return;
- await loadAudioAssets();
- const buffer=decodedAudio[name];if(!buffer||!audioOn)return;
- try{
-  const source=audioCtx.createBufferSource(),gain=audioCtx.createGain();
-  source.buffer=buffer;gain.gain.value=Math.max(0,Math.min(1,volume));
-  source.connect(gain);gain.connect(sfxGain);source.start();
- }catch(e){}
-}
-function ensureAudio(){
- try{
-  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq=440,duration=.08,type="square",volume=.035) {
+ if(!audioOn) return;
+ try {
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
   if(audioCtx.state==="suspended") audioCtx.resume();
-  if(!sfxGain){sfxGain=audioCtx.createGain();sfxGain.gain.value=masterVolume;sfxGain.connect(audioCtx.destination);}
-  if(!musicGain){musicGain=audioCtx.createGain();musicGain.gain.value=audioOn?masterVolume*.28:0;musicGain.connect(audioCtx.destination);}
-  return true;
- }catch(e){return false;}
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=volume;
+  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+  o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+duration);
+ } catch(e) {}
 }
-function beep(freq=440,duration=.08,type="square",volume=.035){
- if(!audioOn || !ensureAudio()) return;
- try{
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);
-  g.gain.setValueAtTime(Math.max(.0001,volume),audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+Math.max(.025,duration));
-  o.connect(g);g.connect(sfxGain);o.start();o.stop(audioCtx.currentTime+duration+.01);
- }catch(e){}
-}
-// Nhạc nền dark-fantasy được tổng hợp trực tiếp bằng Web Audio: không cần tải file MP3.
-// Mỗi vùng đất dùng thang âm riêng; màn III và lúc đánh boss có giai điệu căng thẳng hơn.
-function musicNote(freq,duration,volume=.10,wave="triangle",when=0){
- if(!audioOn||!ensureAudio())return;
- try{
-  const t=audioCtx.currentTime+when,o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=wave;o.frequency.setValueAtTime(freq,t);
-  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(volume,t+.035);
-  g.gain.exponentialRampToValueAtTime(.0001,t+duration);
-  o.connect(g);g.connect(musicGain);o.start(t);o.stop(t+duration+.03);
- }catch(e){}
-}
-function musicTick(){
- if(!audioOn||!started||shopOpen||gameOver||victory||!ensureAudio())return;
- if(musicLevel!==levelIndex){musicLevel=levelIndex;musicStep=0;}
- const scales=[[0,3,5,7,10],[0,2,3,7,8],[0,3,5,6,10]];
- const roots=[110,82.41,98];
- const scale=scales[levelIndex]||scales[0],root=roots[levelIndex]||110;
- const bossFight=!!(boss&&boss.alive&&levelIndex===2&&Math.abs(player.x-boss.x)<620);
- const pattern=bossFight?[0,3,7,10,7,3,12,10]:[0,7,3,10,5,3,7,2];
- const step=musicStep++%pattern.length,semi=pattern[step]+scale[step%scale.length];
- // Low, slow drone gives the game a continuous ominous atmosphere.
- if(step===0)musicNote(root/2,1.8,.055,"sine");
- musicNote(root*Math.pow(2,semi/12),bossFight?.34:.62,bossFight?.075:.045,"triangle",.02);
- if(step===2||step===6)musicNote(root*2*Math.pow(2,scale[(step+1)%scale.length]/12),.28,.018,"sine",.12);
- if(step===4)musicNote(root*.75,.8,.025,"sawtooth",.04);
-}
-function startMusic(){
- if(!audioOn||!ensureAudio())return;
- loadAudioAssets().then(()=>{
-  if(!audioOn||!started||!decodedAudio.dark_fantasy_ambient)return;
-  if(ambientSource){try{ambientSource.stop();}catch(e){} ambientSource=null;}
-  try{
-   ambientSource=audioCtx.createBufferSource();ambientSource.buffer=decodedAudio.dark_fantasy_ambient;ambientSource.loop=true;
-   ambientSource.connect(musicGain);ambientSource.start();
-  }catch(e){ambientSource=null;}
- });
-}
-function stopMusic(){
- if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
- if(ambientSource){try{ambientSource.stop();}catch(e){} ambientSource=null;}
-}
-function updateAudioUI(){const b=document.getElementById("audioToggle");if(b)b.textContent=audioOn?"♪ ĐANG BẬT":"♪ ĐANG TẮT";if(musicGain&&audioCtx)musicGain.gain.setTargetAtTime(audioOn?masterVolume*.28:0,audioCtx.currentTime,.04);if(sfxGain&&audioCtx)sfxGain.gain.setTargetAtTime(masterVolume,audioCtx.currentTime,.04);}
-function toggleAudio(){audioOn=!audioOn;if(audioOn){ensureAudio();startMusic();beep(500,.06);}else{stopMusic();}updateAudioUI();}
 function noiseHit(){beep(110,.12,"sawtooth",.06)}
 function addParticles(x,y,color,n=8){
  for(let i=0;i<n;i++) particles.push({x,y,vx:(Math.random()-.5)*180,vy:-Math.random()*150-20,life:.45,color});
@@ -291,17 +196,35 @@ function platforms(){return world.platforms.map(p=>({x:p[0],y:p[1],w:p[2],h:16})
 function damage(amount=1){
  if(godMode){player.hp=player.maxHp;invuln=.15;return;}
  if(invuln>0 || gameOver || victory) return;
- player.hp=Math.max(0,player.hp-amount); invuln=1.25; shake=.25; playSample("damage",.9); noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
+ player.hp=Math.max(0,player.hp-amount); invuln=1.25; shake=.25; noiseHit(); addParticles(player.x+12,player.y+15,"#ff657a",12);
  if(player.hp<=0){gameOver=true; beep(90,.5,"sawtooth",.06);}
+ updatePotionUI();
+}
+function updatePotionUI(){
+ const count=document.getElementById("potioncount"),btn=document.getElementById("potionbtn");
+ if(count)count.textContent=String(potions);
+ if(btn)btn.disabled=potions<=0 || !player || player.hp>=player.maxHp || !started || gameOver || victory || shopOpen;
+}
+function usePotion(){
+ if(!started || gameOver || victory || shopOpen || potions<=0 || player.hp>=player.maxHp){
+  if(player && player.hp>=player.maxHp)document.getElementById("save-message").textContent="Máu đang đầy; hãy dùng bình hồi máu sau khi bị thương.";
+  else if(potions<=0)document.getElementById("save-message").textContent="Bạn đã dùng hết 2 bình hồi máu của lượt chơi này.";
+  updatePotionUI();return;
+ }
+ const before=player.hp, heal=Math.max(1,Math.ceil(player.maxHp*0.5));
+ player.hp=Math.min(player.maxHp,player.hp+heal);potions--;invuln=Math.max(invuln,.45);
+ addParticles(player.x+player.w/2,player.y+player.h/2,"#9df59a",18);beep(720,.13,"sine",.05);
+ document.getElementById("save-message").textContent="Đã dùng bình hồi máu: +"+(player.hp-before)+" máu. Còn "+potions+" bình.";
+ updatePotionUI();persistCheckpoint();
 }
 function attack(){
  if(!started || attackTimer>0 || gameOver || victory) return;
- attackTimer=.22; playSample("sword_slash",.85);
+ attackTimer=.22; beep(240,.07,"square",.04);
  const range={x:player.face>0?player.x+player.w:player.x-28,y:player.y+5,w:30+shopUpgrades.damage*4,h:25};
  enemies.forEach(e=>{if(e.alive && hit(range,e)){e.alive=false;score+=100;addParticles(e.x+13,e.y+12,"#a9c6d9",12);beep(620,.09);}});
- if(boss && boss.alive && hit(range,boss)){playSample("boss_sting",.35);boss.hp-=1+shopUpgrades.damage;boss.flash=.18;score+=25;addParticles(boss.x+boss.w/2,boss.y+25,"#fca5a5",8);beep(170,.08,"sawtooth",.05);if(boss.hp<=0){boss.alive=false;score+=1000;addParticles(boss.x+30,boss.y+30,"#e879f9",30);}}
+ if(boss && boss.alive && hit(range,boss)){boss.hp-=1+shopUpgrades.damage;boss.flash=.18;score+=25;addParticles(boss.x+boss.w/2,boss.y+25,"#fca5a5",8);beep(170,.08,"sawtooth",.05);if(boss.hp<=0){boss.alive=false;score+=1000;addParticles(boss.x+30,boss.y+30,"#e879f9",30);}}
 }
-function resetGame(){score=0;coins=0;levelIndex=0;shopOpen=false;shopUpgrades={hp:0,damage:0,speed:0};document.getElementById("shopmenu").style.display="none";makeWorld(0);beep(500,.08);}
+function resetGame(){score=0;coins=0;levelIndex=0;potions=MAX_POTIONS;shopOpen=false;shopUpgrades={hp:0,damage:0,speed:0};document.getElementById("shopmenu").style.display="none";makeWorld(0);beep(500,.08);}
 function nextLevel(){
  if(levelIndex<levels.length-1){
   levelIndex++;shopOpen=true;
@@ -332,7 +255,7 @@ function buyItem(item){
  if(!godMode && coins<cost){shopMessage="Bạn chưa có đủ linh hồn để mua vật phẩm này.";beep(110,.1,"square");updateShopUI();return;}
  if(!godMode) coins-=cost; else coins=INFINITE_COINS;
  shopUpgrades[item]++;
- if(item==="hp"){player.maxHp++;player.hp=Math.min(player.maxHp,player.hp+1);playSample("heal",.8);}
+ if(item==="hp"){player.maxHp++;player.hp=Math.min(player.maxHp,player.hp+1);}
  shopMessage=({hp:"Sinh mệnh được tăng cường!",damage:"Lưỡi kiếm phát sáng mạnh hơn!",speed:"Bước chân bóng tối đã được nâng cấp!"})[item];
  beep(740,.1,"triangle");updateShopUI();
 }
@@ -343,19 +266,17 @@ function saveBest(){
 }
 function persistCheckpoint(){
  try{
-  localStorage.setItem(AUTO_CHECKPOINT_KEY,JSON.stringify({version:2,savedAt:Date.now(),levelIndex,x:activeCheckpoint.x,y:activeCheckpoint.y,label:activeCheckpoint.label,difficulty,score,coins:godMode?0:coins,shopUpgrades}));
+  localStorage.setItem(AUTO_CHECKPOINT_KEY,JSON.stringify({version:2,savedAt:Date.now(),levelIndex,x:activeCheckpoint.x,y:activeCheckpoint.y,label:activeCheckpoint.label,difficulty,score,coins:godMode?0:coins,shopUpgrades,potions}));
  }catch(e){}
 }
 function activateCheckpoint(cp){
  activeCheckpoint={x:cp.x,y:cp.y-34,label:cp.label||"Checkpoint"};
  checkpointNotice=2.1;
  persistCheckpoint();
- playSample("checkpoint",.8);
  beep(660,.1,"triangle",.04);setTimeout(()=>beep(880,.12,"triangle",.035),90);
  document.getElementById("save-message").textContent="Checkpoint đã kích hoạt: "+activeCheckpoint.label+". Tiến trình được tự động lưu trên thiết bị này.";
 }
 function resumeCheckpoint(){
- ensureAudio();
  let data=null;
  try{data=JSON.parse(localStorage.getItem(AUTO_CHECKPOINT_KEY)||"null");}catch(e){}
  if(!data || !Number.isInteger(data.levelIndex) || data.levelIndex<0 || data.levelIndex>=levels.length){
@@ -367,7 +288,7 @@ function resumeCheckpoint(){
  levelIndex=data.levelIndex;makeWorld(levelIndex);
  activeCheckpoint={x:Number(data.x)||levels[levelIndex].start,y:Number(data.y)||350,label:data.label||"Checkpoint"};
  player.x=activeCheckpoint.x;player.y=activeCheckpoint.y;player.vy=0;player.grounded=false;
- score=Number(data.score)||0;coins=godMode?INFINITE_COINS:(Number(data.coins)||0);shopUpgrades={hp:0,damage:0,speed:0,...(data.shopUpgrades||{})};
+ score=Number(data.score)||0;coins=godMode?INFINITE_COINS:(Number(data.coins)||0);shopUpgrades={hp:0,damage:0,speed:0,...(data.shopUpgrades||{})};potions=Number.isFinite(data.potions)?Math.max(0,Math.min(MAX_POTIONS,data.potions)):MAX_POTIONS;updatePotionUI();
  started=true;gameOver=false;victory=false;shopOpen=false;
  document.getElementById("mainmenu").style.display="none";document.getElementById("shopmenu").style.display="none";
  document.getElementById("save-message").textContent="Đã tiếp tục từ checkpoint: "+activeCheckpoint.label+".";canvas.focus();beep(560,.1,"triangle");
@@ -376,7 +297,7 @@ function retryFromCheckpoint(){
  gameOver=false;victory=false;player.hp=player.maxHp;player.x=activeCheckpoint.x;player.y=activeCheckpoint.y;player.vx=0;player.vy=0;player.grounded=false;invuln=2;attackTimer=0;
  enemies.forEach(e=>{if(!e.alive){e.alive=true;e.x=e.home;e.vx=Math.abs(e.vx)*(Math.random()<.5?-1:1);}});
  if(boss && !boss.alive){boss.alive=true;boss.hp=boss.maxHp;boss.x=1320;boss.vx=70;boss.attack=0;}
- bossProjectiles=[];enemyArrows=[];
+ bossProjectiles=[];
  traps.forEach(t=>{t.hitCooldown=0;if(t.type==="boulder"){t.state="rest";t.y=-(t.size||112)-10;t.pauseTimer=Math.max(1,t.pause||5);} });
  persistCheckpoint();beep(520,.1,"triangle");canvas.focus();
 }
@@ -400,7 +321,7 @@ function saveLevelSlot(index){
   beep(130,.1,"square");return;
  }
  try{
-  const data={version:1,savedAt:Date.now(),levelIndex:index,difficulty,score,coins,shopUpgrades,
+  const data={version:2,savedAt:Date.now(),levelIndex:index,difficulty,score,coins,shopUpgrades,potions,
    player:JSON.parse(JSON.stringify(player)),enemies:JSON.parse(JSON.stringify(enemies)),coinsList:JSON.parse(JSON.stringify(coinsList)),
    boss:boss?JSON.parse(JSON.stringify(boss)):null,traps:JSON.parse(JSON.stringify(traps)),checkpoint:JSON.parse(JSON.stringify(activeCheckpoint)),started:true};
   localStorage.setItem(saveKey(index),JSON.stringify(data));
@@ -409,7 +330,6 @@ function saveLevelSlot(index){
  }catch(e){document.getElementById("save-message").textContent="Không lưu được. Trình duyệt có thể đang chặn bộ nhớ cục bộ.";}
 }
 function loadLevelSlot(index){
- ensureAudio();
  let data=null;
  try{data=JSON.parse(localStorage.getItem(saveKey(index))||"null");}catch(e){}
  if(!data || data.levelIndex!==index || !data.player || !Number.isFinite(data.player.x) || !Number.isFinite(data.player.y) || !Number.isFinite(data.player.hp) || !Number.isFinite(data.player.maxHp) || !Array.isArray(data.enemies) || !Array.isArray(data.coinsList) || !Array.isArray(data.traps)){document.getElementById("save-message").textContent="Ô lưu màn này đang trống hoặc dữ liệu không hợp lệ. Hãy lưu lại tiến trình mới.";return;}
@@ -420,12 +340,12 @@ function loadLevelSlot(index){
   levelIndex=index;makeWorld(index);
   player=data.player;enemies=data.enemies;coinsList=data.coinsList;boss=data.boss;traps=data.traps;
   activeCheckpoint=data.checkpoint&&Number.isFinite(data.checkpoint.x)&&Number.isFinite(data.checkpoint.y)?data.checkpoint:{x:levels[index].start,y:350,label:"Khởi đầu"};
-  score=data.score||0;coins=godMode?INFINITE_COINS:(data.coins||0);shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};
+  score=data.score||0;coins=godMode?INFINITE_COINS:(data.coins||0);shopUpgrades=data.shopUpgrades||{hp:0,damage:0,speed:0};potions=Number.isFinite(data.potions)?Math.max(0,Math.min(MAX_POTIONS,data.potions)):MAX_POTIONS;updatePotionUI();
   started=true;gameOver=false;victory=false;shopOpen=false;attackTimer=0;invuln=0;shake=0;
   document.getElementById("mainmenu").style.display="none";
   document.getElementById("shopmenu").style.display="none";
   document.getElementById("save-message").textContent="Đã tải tiến trình màn "+(index+1)+" ("+levels[index].name+").";
-  canvas.focus();refreshSaveSlots();startMusic();beep(560,.1,"triangle");
+  canvas.focus();refreshSaveSlots();beep(560,.1,"triangle");
  }catch(e){document.getElementById("save-message").textContent="Không thể tải ô lưu này. Hãy thử lưu lại màn chơi.";}
 }
 document.querySelectorAll("[data-save]").forEach(btn=>btn.addEventListener("click",()=>saveLevelSlot(Number(btn.dataset.save))));
@@ -440,7 +360,7 @@ function update(dt){
  if(left){player.vx-=accel*dt;player.face=-1;} if(right){player.vx+=accel*dt;player.face=1;}
  if(!left&&!right) player.vx*=Math.pow(.0008,dt);
  player.vx=Math.max(-speed,Math.min(speed,player.vx));
- if(jump && player.grounded){player.vy=-470;player.grounded=false;addParticles(player.x+player.w/2,player.y+player.h,"#a7b8ff",7);playSample("jump",.7);}
+ if(jump && player.grounded){player.vy=-470;player.grounded=false;addParticles(player.x+player.w/2,player.y+player.h,"#a7b8ff",7);beep(360,.07,"square",.025);}
  player.vy+=1150*dt; player.vy=Math.min(player.vy,700);
  // horizontal movement and world boundaries
  player.x+=player.vx*dt; player.x=Math.max(0,Math.min(world.length-player.w,player.x));
@@ -467,98 +387,17 @@ function update(dt){
  });
  checkpointNotice=Math.max(0,checkpointNotice-dt);
  // collect coins
- coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins=godMode?INFINITE_COINS:coins+1;score+=10;playSample("coin_pickup",.8);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
- // Enemy AI: archers fire aimed arrows; tankers leap onto raised platforms and shove the player.
+ coinsList.forEach(c=>{if(!c.taken && Math.abs((player.x+player.w/2)-c.x)<22 && Math.abs((player.y+player.h/2)-c.y)<25){c.taken=true;coins=godMode?INFINITE_COINS:coins+1;score+=10;beep(800,.06,"sine",.035);addParticles(c.x,c.y,"#ffd166",7);if(shopOpen)updateShopUI();}});
+ // enemies
  enemies.forEach(e=>{
   if(!e.alive)return;
-  e.flash=Math.max(0,(e.flash||0)-dt);
-  const dx=(player.x+player.w/2)-(e.x+e.w/2);
-  const distance=Math.abs(dx);
-  if(e.type==="archer"){
-   // Keep a little distance from the player, but continue patrolling when far away.
-   if(distance<250)e.vx*=Math.pow(.92,dt*60);
-   else {e.x+=e.vx*dt;if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;}
-   e.shotCooldown-=dt;
-   if(e.shotCooldown<=0 && distance<560){
-    const dir=dx>=0?1:-1;
-    const sx=e.x+e.w/2+dir*8, sy=e.y+12;
-    const aimY=(player.y+player.h*.42)-sy;
-    const len=Math.max(1,Math.hypot(dx,aimY));
-    const arrowSpeed=difficulty==="hard"?370:310;
-    enemyArrows.push({x:sx,y:sy,vx:dx/len*arrowSpeed,vy:aimY/len*arrowSpeed,life:2.3,damage:difficulty==="hard"?.8:.55,angle:Math.atan2(aimY,dx),trail:0});
-    e.shotCooldown=(difficulty==="hard"?1.25:1.75)+Math.random()*.65;
-    addParticles(sx,sy,"#ff8a65",3);beep(210,.035,"triangle",.012);
-   }
-  }else{
-   // Tanker has a short wind-up, then charges with enough force to push the player.
-   e.chargeCooldown-=dt;
-   if(e.charging>0){
-    e.charging-=dt;e.x+=e.vx*2.25*dt;
-    if(e.charging<=0){e.vx=Math.sign(e.vx||1)*52*difficultySettings[difficulty].enemy;}
-   }else{
-    const dir=dx>=0?1:-1;
-    e.x+=e.vx*dt;
-    if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;
-    // Jump when a raised platform is directly ahead or the player is on higher ground.
-    const foot=e.y+e.h;
-    const nearPlatform=platforms().find(p=>{
-     const ahead=dir>0?(p.x>e.x+e.w-3 && p.x<e.x+e.w+58):(p.x+p.w<e.x+3 && p.x+p.w>e.x-58);
-     return ahead && p.y<foot-16 && p.y>foot-112;
-    });
-    const playerAbove=player.y+player.h<e.y+e.h-24 && distance<175;
-    e.jumpCooldown-=dt;
-    if(e.grounded && e.jumpCooldown<=0 && (nearPlatform||playerAbove)){
-     e.vy=nearPlatform?-440:-390;e.grounded=false;
-     e.jumpCooldown=1.25+Math.random()*.5;
-     addParticles(e.x+e.w/2,e.y+e.h,"#d97706",5);
-    }
-    e.vy=Math.min(650,(e.vy||0)+1080*dt);
-    const oldEnemyY=e.y;e.y+=e.vy*dt;e.grounded=false;
-    const efloor=floorAt(e.x+e.w/2);
-    if(e.y+e.h>=efloor && oldEnemyY+e.h<=efloor+18 && efloor<H+50){e.y=efloor-e.h;e.vy=0;e.grounded=true;}
-    for(const p of platforms()){
-     if(e.vy>=0 && oldEnemyY+e.h<=p.y+5 && e.y+e.h>=p.y && e.x+e.w>p.x && e.x<p.x+p.w){
-      e.y=p.y-e.h;e.vy=0;e.grounded=true;
-     }
-    }
-    if(e.chargeCooldown<=0 && distance<180 && distance>25){
-     e.vx=dir*(difficulty==="hard"?220:185);e.charging=.42;e.chargeCooldown=2.1;
-     addParticles(e.x+e.w/2,e.y+e.h-3,"#fb923c",7);shake=Math.max(shake,.07);
-    }
-   }
-  }
-  // Stay inside the level and collide with the player.
-  e.x=Math.max(0,Math.min(world.length-e.w,e.x));
+  e.x+=e.vx*dt;
+  if(Math.abs(e.x-e.home)>e.range)e.vx*=-1;
   const eb={x:e.x,y:e.y,w:e.w,h:e.h};
   if(hit(player,eb)){
-   if(e.type==="tanker" && e.charging>0){
-    if(!godMode && invuln<=0){
-     player.hp=Math.max(0,player.hp-(difficulty==="hard"?1.1:.8));
-     player.vx=Math.sign(dx||1)*(difficulty==="hard"?430:350);
-     player.vy=-245;invuln=1.0;noiseHit();shake=.24;
-     addParticles(player.x+player.w/2,player.y+player.h/2,"#fb923c",12);
-     if(player.hp<=0){gameOver=true;beep(90,.5,"sawtooth",.06);}
-    }
-   }else if(player.vy>80 && oldY+player.h<e.y+12){
-    e.hp-=1;e.flash=.15;player.vy=-300;score+=e.type==="tanker"?60:100;
-    addParticles(e.x+e.w/2,e.y,"#a9c6d9",10);beep(500,.07);
-    if(e.hp<=0)e.alive=false;
-   }else damage();
+   if(player.vy>80 && oldY+player.h<e.y+12){e.alive=false;player.vy=-300;score+=100;addParticles(e.x,e.y,"#a9c6d9",10);beep(500,.07);}
+   else damage();
   }
- });
- // Arrow projectiles keep moving independently and deal damage on impact.
- enemyArrows=enemyArrows.filter(a=>{
-  a.life-=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;a.trail=(a.trail||0)+dt;
-  if(a.life<=0||a.x<cam-60||a.x>cam+W+60||a.y<-40||a.y>H+40)return false;
-  if(hit(player,{x:a.x-5,y:a.y-3,w:10,h:6})){
-   if(!godMode && invuln<=0){
-    player.hp=Math.max(0,player.hp-a.damage);player.vx+=(a.vx>0?1:-1)*150;player.vy=-110;
-    invuln=.8;noiseHit();addParticles(a.x,a.y,"#ff8a65",8);
-    if(player.hp<=0){gameOver=true;beep(90,.5,"sawtooth",.06);}
-   }
-   return false;
-  }
-  return true;
  });
  if(boss && boss.alive){
   boss.x+=boss.vx*dt;
@@ -594,7 +433,7 @@ function update(dt){
    } else if(t.state==="drop"){
     t.y+= (t.dropSpeed||620)*dt;
     if(t.y>=landingY){
-     t.y=landingY;t.state="landed";t.impactTimer=.55;t.pauseTimer=.55;shake=.32;playSample("trap_impact",.85);
+     t.y=landingY;t.state="landed";t.impactTimer=.55;t.pauseTimer=.55;shake=.32;
      addParticles(t.x,world.ground-5,"#b8aaa0",24);beep(58,.28,"sawtooth",.065);
     }
    } else if(t.state==="landed"){
@@ -611,11 +450,17 @@ function update(dt){
    const flame={x:t.x-14,y:world.ground-flameH,w:28,h:flameH};
    if(t.flameOn&&hit(player,flame)&&t.hitCooldown<=0){damage(t.damage);t.hitCooldown=1.3;addParticles(t.x,world.ground-45,"#ff8738",10);beep(95,.12,"sawtooth",.045);}
   } else if(t.type==="laser"){
-   // Laser pulses on/off; its route has at most three reflections at solid mirror objects.
+   // Laser appears only in the final arena. A large diagonal beam bounces across the whole arena.
    const period=t.period/(difficulty==="hard"?1.2:difficulty==="easy"?0.88:1);
    const active=t.active*(difficulty==="hard"?1.18:difficulty==="easy"?0.78:1);
    t.laserPhase=(t.laserPhase+dt)%period;
    t.laserOn=t.laserPhase<active;
+   if(t.bounce && levelIndex===2){
+    t.x+=(t.bounceVx||410)*t.dir*dt;t.y+=(t.bounceVy||190)*(t.vertDir||1)*dt;
+    if(t.x<120){t.x=120;t.dir=1;} if(t.x>world.length-120){t.x=world.length-120;t.dir=-1;}
+    if(t.y<95){t.y=95;t.vertDir=1;} if(t.y>world.ground-75){t.y=world.ground-75;t.vertDir=-1;}
+    t.points=[[t.x-100,t.y-145],[t.x+100,t.y+145]];
+   }
    if(t.laserOn && t.hitCooldown<=0){
     const pts=t.points||[]; let hitBeam=false;
     for(let i=0;i<pts.length-1;i++){
@@ -623,9 +468,9 @@ function update(dt){
      const dx=b[0]-a[0],dy=b[1]-a[1],len2=dx*dx+dy*dy;
      const u=Math.max(0,Math.min(1,((px-a[0])*dx+(py-a[1])*dy)/(len2||1)));
      const qx=a[0]+u*dx,qy=a[1]+u*dy;
-     if(Math.hypot(px-qx,py-qy)<13){hitBeam=true;break;}
+     if(Math.hypot(px-qx,py-qy)<(t.beamWidth||16)+18){hitBeam=true;break;}
     }
-    if(hitBeam){damage(t.damage);t.hitCooldown=1.05;addParticles(player.x+12,player.y+16,"#ff4d6d",12);beep(150,.1,"sawtooth",.045);}
+    if(hitBeam){damage(t.damage);t.hitCooldown=1.05;addParticles(player.x+12,player.y+16,"#ff4d6d",16);beep(150,.1,"sawtooth",.045);}
    }
   }
  });
@@ -885,10 +730,10 @@ function drawWorld(cam){
    if(t.laserOn&&pts.length>1){
     for(let i=0;i<pts.length-1;i++){
      const a=pts[i],b=pts[i+1],ax=a[0]-cam,bx=b[0]-cam;
-     glow((ax+bx)/2,(a[1]+b[1])/2,22,"#ff244f",.2);
-     ctx.save();ctx.strokeStyle="#ff3158";ctx.lineWidth=7;ctx.globalAlpha=.28;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
-     ctx.strokeStyle="#ff496b";ctx.lineWidth=3;ctx.globalAlpha=.9;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
-     ctx.strokeStyle="#ffe8ed";ctx.lineWidth=1;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();ctx.restore();
+     glow((ax+bx)/2,(a[1]+b[1])/2,t.beamWidth?48:22,"#ff244f",t.beamWidth?.38:.2);
+     ctx.save();ctx.strokeStyle="#ff3158";ctx.lineWidth=t.beamWidth||7;ctx.globalAlpha=.42;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ff496b";ctx.lineWidth=t.beamWidth?Math.max(5,t.beamWidth*.55):3;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();
+     ctx.strokeStyle="#ffe8ed";ctx.lineWidth=t.beamWidth?3:1;ctx.globalAlpha=.98;ctx.beginPath();ctx.moveTo(ax,a[1]);ctx.lineTo(bx,b[1]);ctx.stroke();ctx.restore();
     }
    } else if(pts.length>1){const a=pts[0],b=pts[1];ctx.save();ctx.strokeStyle="#ff526e";ctx.lineWidth=2;ctx.globalAlpha=.25;ctx.beginPath();ctx.moveTo(a[0]-cam,a[1]);ctx.lineTo(b[0]-cam,b[1]);ctx.stroke();ctx.restore();}
   }
@@ -932,48 +777,21 @@ function drawWorld(cam){
  ctx.strokeStyle="#e9c8ff";ctx.lineWidth=3;ctx.strokeRect(gx+4,gy+3,24,59);rect(gx+10,gy+13,4,4,"#f3d7ff");rect(gx+20,gy+30,4,4,"#f3d7ff");
  // coins: glowing gold pixel coins
  coinsList.forEach(c=>{if(c.taken)return;let wob=Math.sin(performance.now()/180+c.x)*3,x=c.x-cam,y=c.y+wob;glow(x,y,23,"#fbbf24",.3);rect(x-6,y-8,12,16,"#e9a52e");rect(x-4,y-10,8,2,"#ffe8a1");rect(x-4,y-6,8,12,"#ffdc69");rect(x-1,y-5,3,10,"#fff4bc");rect(x-6,y+7,12,2,"#b87920");});
-   // Enemy archetypes: archers with a drawn bow, and heavy tankers in plated armor.
+   // Enemies: layered silhouettes, animated limbs, eye glow and ground shadows.
   enemies.forEach(e=>{
    if(!e.alive)return;
-   const x=e.x-cam,y=e.y,t=performance.now()*.012+e.home;
-   const walk=Math.sin(t)*2.1, flash=e.flash>0;
-   ctx.globalAlpha=.32;rect(x-3,world.ground-3,e.w+6,4,"#000");ctx.globalAlpha=1;
-   if(e.type==="archer"){
-    glow(x+13,y+13,34,"#fb456c",.18);
-    // Ragged hood and thin, agile silhouette.
-    ctx.fillStyle="#171522";ctx.beginPath();ctx.moveTo(x+3,y+7);ctx.lineTo(x+13,y-1);ctx.lineTo(x+23,y+7);ctx.lineTo(x+22,y+24);ctx.lineTo(x+17,y+30);ctx.lineTo(x+7,y+30);ctx.lineTo(x+2,y+22);ctx.closePath();ctx.fill();
-    rect(x+5,y+5,15,12,flash?"#fff":"#5a526e");rect(x+6,y+10,4,4,"#ff536f");rect(x+15,y+10,4,4,"#ff536f");
-    rect(x+6,y+18,14,9,"#343044");rect(x+7,y+27,5,4+walk,"#272334");rect(x+15,y+27,5,4-walk,"#272334");
-    // Bow and nocked arrow, pointed toward the player.
-    const face=player.x>e.x?1:-1,bx=x+13+face*8;
-    ctx.strokeStyle="#c9a46a";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx,y+8);ctx.quadraticCurveTo(bx+face*8,y+16,bx,y+25);ctx.stroke();
-    ctx.strokeStyle="#e9d5a5";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx,y+8);ctx.lineTo(bx,y+25);ctx.stroke();
-    rect(bx+face*1,y+15,face*8,2,"#f0d7a0");rect(bx+face*8,y+13,face*3,2,"#fff1c2");
-    glow(x+13,y+13,13,"#ff536f",.32);
-   }else{
-    // Heavy tanker: broad shoulders, iron helmet, reinforced chest and massive boots.
-    glow(x+17,y+19,44,"#f97316",.18);
-    ctx.fillStyle="#201a20";ctx.beginPath();ctx.moveTo(x+3,y+11);ctx.lineTo(x+6,y+2);ctx.lineTo(x+27,y+2);ctx.lineTo(x+32,y+12);ctx.lineTo(x+31,y+32);ctx.lineTo(x+25,y+38);ctx.lineTo(x+7,y+38);ctx.lineTo(x+1,y+31);ctx.closePath();ctx.fill();
-    rect(x+7,y+4,20,13,flash?"#fff":"#6f625d");rect(x+5,y+9,24,7,"#9a8877");rect(x+9,y+12,5,4,"#ffb15c");rect(x+20,y+12,5,4,"#ffb15c");
-    glow(x+11,y+14,12,"#fb923c",.55);glow(x+22,y+14,12,"#fb923c",.55);
-    rect(x+4,y+18,27,13,flash?"#fff":"#5b4a45");rect(x+1,y+18,10,10,"#8b7768");rect(x+24,y+18,10,10,"#8b7768");
-    rect(x+9,y+20,16,3,"#c4b5a5");rect(x+11,y+25,12,3,"#2c2528");
-    rect(x+7,y+30,8,6+walk*.35,"#43363a");rect(x+20,y+30,8,6-walk*.35,"#43363a");
-    rect(x+4,y+35+walk*.2,12,3,"#a18a78");rect(x+19,y+35-walk*.2,12,3,"#a18a78");
-    // Shoulder spikes and a glowing chest sigil.
-    for(let i=0;i<3;i++){ctx.fillStyle="#c4a78b";ctx.beginPath();ctx.moveTo(x+3+i*4,y+19);ctx.lineTo(x+5+i*4,y+13);ctx.lineTo(x+8+i*4,y+19);ctx.fill();}
-    rect(x+16,y+22,4,5,"#fb923c");glow(x+18,y+24,12,"#fb923c",.4);
-    if(e.charging>0){glow(x+17,y+25,45,"#fb923c",.25);rect(x-4,y+34,4,3,"#fb923c");rect(x+e.w,y+32,5,3,"#fb923c");}
-  }
-  });
-  // Glowing arrows have a warm trail and a sharp metal tip.
-  enemyArrows.forEach(a=>{
-   const x=a.x-cam,y=a.y;
-   ctx.save();ctx.translate(x,y);ctx.rotate(a.angle||0);
-   glow(0,0,15,"#fb923c",.24);
-   ctx.strokeStyle="#f6c77b";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(7,0);ctx.stroke();
-   ctx.fillStyle="#fff1c2";ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(4,-3);ctx.lineTo(4,3);ctx.closePath();ctx.fill();
-   rect(-13,-2,4,4,"#b45309");ctx.restore();
+   const x=e.x-cam,y=e.y,walk=Math.sin(performance.now()*.012+e.home)*2.2;
+   ctx.globalAlpha=.32;rect(x-2,world.ground-3,30,4,"#000");ctx.globalAlpha=1;
+   glow(x+13,y+14,34,"#fb456c",.20);
+   ctx.fillStyle="#151923";ctx.beginPath();ctx.moveTo(x+4,y+8);ctx.lineTo(x+22,y+7);ctx.lineTo(x+27,y+25);ctx.lineTo(x+22,y+30);ctx.lineTo(x+18,y+24);ctx.lineTo(x+12,y+31);ctx.lineTo(x+7,y+24);ctx.lineTo(x+1,y+27);ctx.closePath();ctx.fill();
+   rect(x+5,y+3,16,13,"#687c91");rect(x+3,y+8,20,11,"#3e5065");
+   rect(x+6,y+5,14,3,"#a9b8c7");rect(x+7,y+9,4,4,"#ff5578");rect(x+16,y+9,4,4,"#ff5578");
+   glow(x+9,y+11,10,"#ff315f",.52);glow(x+18,y+11,10,"#ff315f",.52);
+   rect(x+5,y+17,17,10,"#344355");rect(x+8,y+18,11,2,"#8495a7");rect(x+9,y+21,9,2,"#202a38");
+   rect(x+3,y+17,5,9,"#596b7d");rect(x+20,y+17,5,8,"#263244");
+   rect(x+6,y+26,6,5+walk,"#222b3b");rect(x+16,y+26,6,5-walk,"#222b3b");
+   rect(x+4,y+29+walk,8,2,"#7c8998");rect(x+15,y+29-walk,8,2,"#7c8998");
+   const wx=x-5-Math.sin(performance.now()*.004+e.home)*3;glow(wx,y+18,11,"#d946ef",.16);rect(wx,y+17,2,4,"#c084fc");
   });
   // Boss: armored silhouette, animated crown, spectral mantle, chest rune and orbiting runes.
   if(boss&&boss.alive){
@@ -1030,10 +848,6 @@ function drawWorld(cam){
  particles.forEach(p=>{glow(p.x-cam,p.y,12,p.color,.16);rect(p.x-cam,p.y,4,4,p.color);});
 }
 function draw(){
- if(gameOver&&!lastAudioGameOver){lastAudioGameOver=true;playSample("game_over",.9);}
- if(victory&&!lastAudioVictory){lastAudioVictory=true;playSample("victory",.9);}
- if(!gameOver)lastAudioGameOver=false;
- if(!victory)lastAudioVictory=false;
  const cam=Math.max(0,Math.min(world.length-W,player.x-W*.38));
  ctx.save();
  if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*6);
@@ -1076,42 +890,17 @@ function draw(){
  document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
  document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
+ updatePotionUI();
  document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
-
+ if(gameOver||victory)saveBest();
 }
-// Vòng lặp tối ưu: giới hạn khoảng 40 FPS để giảm tải khi vẽ nhiều hiệu ứng.
-let lastFrameTime=0, lastBestSavedState="";
-const FRAME_INTERVAL=1000/40;
-function loop(t){
- if(document.hidden){
-  lastTime=0;lastFrameTime=0;
-  requestAnimationFrame(loop);
-  return;
- }
- if(lastFrameTime && t-lastFrameTime<FRAME_INTERVAL){
-  requestAnimationFrame(loop);
-  return;
- }
- const dt=lastTime?(t-lastTime)/1000:0;
- lastTime=t;lastFrameTime=t;
- update(Math.min(dt,.033));
- draw();
- // Chỉ lưu kỷ lục một lần khi trạng thái thua/thắng thay đổi, không ghi bộ nhớ mỗi khung hình.
- if(gameOver||victory){
-  const resultKey=(victory?"victory":"gameover")+":"+score;
-  if(resultKey!==lastBestSavedState){
-   saveBest();
-   lastBestSavedState=resultKey;
-  }
- }
- requestAnimationFrame(loop);
-}
-document.addEventListener("visibilitychange",()=>{lastTime=0;lastFrameTime=0;});
+function loop(t){const dt=(t-lastTime)/1000||0;lastTime=t;update(dt);draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 document.querySelectorAll(".diff-btn").forEach(btn=>btn.addEventListener("click",()=>{difficulty=btn.dataset.diff;document.querySelectorAll(".diff-btn").forEach(b=>b.classList.toggle("active",b===btn));document.getElementById("diffdesc").textContent=difficultySettings[difficulty].desc;makeWorld(levelIndex); }));
-document.getElementById("startbtn").addEventListener("click",()=>{ensureAudio();score=0;coins=0;levelIndex=0;shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();persistCheckpoint();startMusic();beep(330,.08,"triangle",.025);});
-document.getElementById("resumebtn").addEventListener("click",()=>{ensureAudio();resumeCheckpoint();startMusic();});
+document.getElementById("startbtn").addEventListener("click",()=>{score=0;coins=0;levelIndex=0;potions=MAX_POTIONS;shopUpgrades={hp:0,damage:0,speed:0};makeWorld(0);started=true;document.getElementById("mainmenu").style.display="none";canvas.focus();persistCheckpoint();beep(330,.08,"triangle",.025);});
+document.getElementById("resumebtn").addEventListener("click",resumeCheckpoint);
+document.getElementById("potionbtn").addEventListener("click",usePotion);
 document.querySelectorAll(".buy-btn").forEach(btn=>btn.addEventListener("click",()=>buyItem(btn.dataset.item)));
 document.getElementById("continuebtn").addEventListener("click",()=>{
  shopOpen=false;document.getElementById("shopmenu").style.display="none";
@@ -1142,16 +931,12 @@ window.addEventListener("keydown",e=>{
  if(["ArrowLeft","ArrowRight","ArrowUp"," ","ArrowDown","/"].includes(k))e.preventDefault();
  keys[k]=true;
  if(k==="j"||k==="J")attack();
- if(k==="m"||k==="M"){toggleAudio();}
+ if(k==="m"||k==="M"){audioOn=!audioOn;beep(500,.06);}
+ if(k==="h"||k==="H")usePotion();
  if((k==="r"||k==="R")&&gameOver)retryFromCheckpoint();
  if((k==="r"||k==="R")&&victory)resetGame();
 });
 window.addEventListener("keyup",e=>{keys[e.key]=false;});
-document.getElementById("audioToggle").addEventListener("click",toggleAudio);
-document.getElementById("volumeSlider").addEventListener("input",e=>{masterVolume=Number(e.target.value)/100;ensureAudio();updateAudioUI();});
-window.addEventListener("pointerdown",()=>{if(audioOn&&started&&!ambientSource)startMusic();},{once:true});
-document.addEventListener("visibilitychange",()=>{if(document.hidden){if(audioCtx&&audioCtx.state==="running")audioCtx.suspend();}else if(audioOn&&audioCtx){audioCtx.resume();}});
-updateAudioUI();
 refreshSaveSlots();
 canvas.focus();
 })();
@@ -1160,38 +945,22 @@ canvas.focus();
 </html>
 """
 
-# Nhúng các file âm thanh vào iframe của Streamlit dưới dạng data URI để hoạt động
-# cả trên Streamlit Community Cloud, không phụ thuộc đường dẫn file cục bộ trong trình duyệt.
-_AUDIO_DIR = Path(__file__).parent / "assets" / "sounds"
-_AUDIO_NAMES = [
-    "dark_fantasy_ambient", "sword_slash", "coin_pickup", "jump", "damage",
-    "heal", "trap_impact", "boss_sting", "checkpoint", "victory", "game_over",
-]
-_audio_data = {}
-for _name in _AUDIO_NAMES:
-    _path = _AUDIO_DIR / f"{_name}.wav"
-    if _path.exists():
-        _audio_data[_name] = base64.b64encode(_path.read_bytes()).decode("ascii")
-game_html = game_html.replace(
-    'const canvas = document.getElementById("game");',
-    'const AUDIO_DATA = ' + json.dumps(_audio_data, separators=(",", ":")) + ';\nconst canvas = document.getElementById("game");',
-    1,
-)
-
-components.html(game_html, height=820, scrolling=False)
+components.html(game_html, height=1040, scrolling=False)
 
 st.markdown("---")
 st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
 st.markdown(
     """
-    - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**. Có thêm **Cung Thủ Bóng Tối** bắn tên và **Tanker Thiết Giáp** nhảy lên bệ cao, lao tới húc đẩy người chơi.
+    - Vượt qua 3 khu vực: **Rừng Tàn**, **Hầm Ngục** và **Đấu Trường**.
     - Thu thập xu, tránh hố, gai, **đá lăn** và **bẫy phun lửa**; mỗi bẫy gây sát thương khác nhau.
     - Đánh bại boss ở màn cuối để chiến thắng.
     - Hiệu ứng nâng cấp: cực quang, tia trăng, sương mù chuyển động, tro bay, linh hồn bay, rễ cây tiền cảnh, nấm phát sáng, cổ tự trên nền đá và viền điện ảnh. Nhân vật có hoạt ảnh chạy/nhảy, áo choàng động, kiếm luôn hiển thị, đường chém phát sáng, bụi chân và hiệu ứng tiếp đất.
     - Có checkpoint tự lưu và nút tiếp tục từ checkpoint; nhấn R sau khi thất bại để hồi sinh tại điểm gần nhất.
     - Boss có đạn linh hồn, tăng tốc độ tấn công khi còn dưới nửa máu.
+    - Có 2 bình hồi máu mỗi lượt; mỗi bình hồi 50% máu tối đa. Dùng nút ✚ trên HUD hoặc nhấn H; số bình được lưu cùng tiến trình.
+    - Bẫy laser chỉ xuất hiện ở màn III, có kích thước lớn và di chuyển bật nảy ngang/dọc khắp đấu trường.
     - Có nút cảm ứng cho điện thoại/tablet; giữ nguyên điều khiển bàn phím trên máy tính.
     - Có 3 ô lưu thủ công riêng cho từng màn; dữ liệu lưu trong trình duyệt trên thiết bị hiện tại, chưa đồng bộ giữa nhiều máy.
-    - Đồ họa pixel bằng Canvas; nhạc nền Dark Fantasy và 10 hiệu ứng âm thanh WAV được nhúng vào game, phát trực tiếp trong iframe Streamlit nên không cần máy chủ âm thanh riêng. Dùng nút ♪ hoặc phím M để bật/tắt và thanh âm lượng để điều chỉnh.
+    - Đồ họa pixel, bẫy, hiệu ứng và âm thanh được tạo bằng Canvas/Web Audio nên không cần tải asset ngoài.
     """
 )
