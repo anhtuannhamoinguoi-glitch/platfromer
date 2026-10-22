@@ -1,16 +1,60 @@
-# SHADOWBOUND — Dark Fantasy Audio Edition
+# SHADOWBOUND — Bản mã nguồn cải thiện
 
-Game platformer Canvas/JavaScript chạy trong Streamlit, có nhạc nền Dark Fantasy dạng vòng lặp và các hiệu ứng WAV: kiếm chém, nhặt xu, nhảy, nhận sát thương, hồi máu, bẫy va chạm, boss, checkpoint, chiến thắng và game over.
+Game platformer Dark Fantasy dùng **Python + Streamlit + HTML/CSS/JavaScript Canvas**.
 
-## Chạy trên máy
-1. Cài Python 3.10+.
-2. `pip install -r requirements.txt`
-3. `streamlit run app.py`
+## Cấu trúc
 
-## Đưa lên GitHub / Streamlit Community Cloud
-Tải lên `app.py`, `requirements.txt` và toàn bộ thư mục `assets/sounds/`. Đặt `app.py` ở thư mục gốc repository.
+```text
+SHADOWBOUND/
+├── app.py
+├── game.html
+├── requirements.txt
+└── README.md
+```
 
-## Điều khiển âm thanh
-Bấm **BẮT ĐẦU HÀNH TRÌNH** để cho phép trình duyệt phát âm thanh. Nút **♪ ĐANG BẬT/TẮT** hoặc phím **M** để tắt/bật; thanh Âm lượng chỉnh nhạc và hiệu ứng cùng lúc.
+## Chạy trên máy tính
 
-Âm thanh WAV được nhúng dạng Base64 vào HTML lúc Streamlit khởi tạo để trình duyệt không phải truy cập đường dẫn file cục bộ. Nếu thiếu file asset, game vẫn chạy và các tiếng tổng hợp Web Audio hiện có vẫn là phương án dự phòng.
+1. Cài Python 3.10 trở lên.
+2. Mở Terminal/CMD trong thư mục dự án.
+3. Cài thư viện:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Chạy:
+
+   ```bash
+   streamlit run app.py
+   ```
+
+## Đưa lên GitHub và Streamlit Cloud
+
+1. Tải cả bốn file lên thư mục gốc của repository GitHub.
+2. Commit changes.
+3. Mở https://share.streamlit.io/ và chọn **Create app**.
+4. Chọn repository, nhánh `main`, file chính `app.py`.
+5. Nhấn **Deploy**.
+
+`app.py` và `game.html` phải nằm cùng thư mục. Không tải riêng `app.py`, vì phần game được đọc từ `game.html`.
+
+## Điều khiển
+
+- `A` / `D` hoặc `←` / `→`: di chuyển.
+- `Space`, `W` hoặc `↑`: nhảy.
+- `J`: tấn công.
+- `M`: bật/tắt âm thanh.
+- `R`: chơi lại / hồi sinh theo trạng thái game.
+- Nhập `/67`: bật chế độ bất tử và vô hạn linh hồn.
+- Trên điện thoại: dùng nút cảm ứng; nên xoay ngang màn hình.
+
+## Các phần được cải thiện
+
+- Tăng chiều cao vùng nhúng và bật cuộn để giảm nguy cơ cắt mất nút lưu/tải ở cuối game.
+- Kiểm tra `game.html` tồn tại, đọc được và có cấu trúc game cơ bản trước khi nhúng.
+- Bổ sung metadata trang và CSS cho màn hình hẹp.
+- Giữ nguyên các cơ chế gameplay hiện có trong `game.html`.
+
+## Lưu ý
+
+Checkpoint, ô lưu và kỷ lục nằm trong bộ nhớ trình duyệt trên thiết bị hiện tại; chưa đồng bộ giữa các thiết bị. Cần kiểm thử gameplay thực tế sau khi triển khai.
