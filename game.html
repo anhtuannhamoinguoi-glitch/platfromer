@@ -574,7 +574,7 @@ function update(dt){
  // Arrow projectiles keep moving independently and deal damage on impact.
  enemyArrows=enemyArrows.filter(a=>{
   a.life-=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;a.trail=(a.trail||0)+dt;
-  if(a.life<=0||a.x<cam-60||a.x>cam+W+60||a.y<-40||a.y>H+40)return false;
+  if(a.life<=0||a.x < -60||a.x > world.length+60||a.y < -40||a.y > H+40)return false;
   if(hit(player,{x:a.x-5,y:a.y-3,w:10,h:6})){
    if(!godMode && invuln<=0){
     player.hp=Math.max(0,player.hp-a.damage);player.vx+=(a.vx>0?1:-1)*150;player.vy=-110;
@@ -1100,6 +1100,7 @@ function drawWorld(cam){
 // floating particles
  particles.forEach(p=>{glow(p.x-cam,p.y,12,p.color,.16);rect(p.x-cam,p.y,4,4,p.color);});
 }
+let hudFrameCounter=0;
 function draw(){
  if(gameOver&&!lastAudioGameOver){lastAudioGameOver=true;playSample("game_over",.9);}
  if(victory&&!lastAudioVictory){lastAudioVictory=true;playSample("victory",.9);}
@@ -1111,7 +1112,7 @@ function draw(){
  drawBackground(cam);drawWorld(cam);
  // Foreground fog rolls across the ground in layered translucent ribbons.
  ctx.save();
- for(let i=0;i<7;i++){
+ for(let i=0;i<4;i++){
   const fx=((i*190-performance.now()*.022*(i%2?1:-.65))%(W+300)+W+300)%(W+300)-150;
   const fy=world.ground-15+(i%3)*13;
   const fog=ctx.createRadialGradient(fx,fy,3,fx,fy,150);
@@ -1126,7 +1127,7 @@ function draw(){
  vignette.addColorStop(1,"rgba(1,2,7,0.68)");
  ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
    // Sparse drifting ash particles add depth without external image assets.
-  const ashTime=performance.now()*.018;for(let i=0;i<34;i++){const ax=(i*83+ashTime*(i%3+1))%(W-12)+6,ay=(i*47+Math.sin(ashTime*.04+i)*9)%(H-20)+8;ctx.globalAlpha=.08+(i%4)*.025;rect(ax,ay,i%7===0?2:1,i%7===0?2:1,i%3===0?"#d8c5ff":"#b7c1d9");}ctx.globalAlpha=1;
+  const ashTime=performance.now()*.018;for(let i=0;i<18;i++){const ax=(i*83+ashTime*(i%3+1))%(W-12)+6,ay=(i*47+Math.sin(ashTime*.04+i)*9)%(H-20)+8;ctx.globalAlpha=.08+(i%4)*.025;rect(ax,ay,i%7===0?2:1,i%7===0?2:1,i%3===0?"#d8c5ff":"#b7c1d9");}ctx.globalAlpha=1;
   // Subtle edge highlights make the scene feel framed like a dark-fantasy game.
  ctx.strokeStyle="rgba(204,176,125,0.24)";ctx.lineWidth=2;ctx.strokeRect(5,5,W-10,H-10);
  ctx.restore();
@@ -1144,16 +1145,19 @@ function draw(){
   text("Điểm: "+score+"     •     Xu: "+coins,W/2,H/2+14,17,"#f6eaff","center");
   text("NHẤN R ĐỂ CHƠI LẠI",W/2,H/2+52,13,"#b8c5e8","center");
  }
- document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
- document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
- document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
- document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
- document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
+ // Cập nhật HUD theo nhịp để tránh ghi DOM quá nhiều lần mỗi giây.
+ if((hudFrameCounter++ % 3)===0){
+  document.getElementById("healthbar").style.width=(Math.max(0,player.hp)/player.maxHp*100)+"%";
+  document.getElementById("hptext").textContent=Math.max(0,player.hp)+" / "+player.maxHp;
+  document.getElementById("staminabar").style.width=(100-Math.min(100,Math.abs(player.vx)/220*18+(attackTimer>0?22:0)))+"%";
+  document.getElementById("coins").textContent=(godMode?"◈ ∞":"◈ "+coins)+"  ·  "+score;
+  document.getElementById("level").textContent=["I","II","III"][levelIndex]+" · "+world.name;
+ }
 
 }
 // Vòng lặp tối ưu: giới hạn khoảng 40 FPS để giảm tải khi vẽ nhiều hiệu ứng.
 let lastFrameTime=0, lastBestSavedState="";
-const FRAME_INTERVAL=1000/40;
+const FRAME_INTERVAL=1000/30;
 function loop(t){
  if(document.hidden){
   lastTime=0;lastFrameTime=0;
@@ -1166,8 +1170,20 @@ function loop(t){
  }
  const dt=lastTime?(t-lastTime)/1000:0;
  lastTime=t;lastFrameTime=t;
- update(Math.min(dt,.033));
- draw();
+ // Không để một lỗi JavaScript đơn lẻ làm chết vĩnh viễn vòng lặp game.
+ try{
+  update(Math.min(dt,.033));
+  draw();
+ }catch(err){
+  console.error("SHADOWBOUND runtime error:",err);
+  let panel=document.getElementById("runtime-error-panel");
+  if(!panel){
+   panel=document.createElement("div");panel.id="runtime-error-panel";
+   panel.style.cssText="position:fixed;z-index:99999;left:10px;right:10px;bottom:10px;padding:10px 12px;background:#32131b;color:#ffe4e6;border:1px solid #fb7185;border-radius:6px;font:12px monospace;white-space:normal;line-height:1.45";
+   panel.textContent="Game gặp lỗi khi chạy: "+(err&&err.message?err.message:String(err))+". Hãy chụp ảnh thông báo này để chẩn đoán tiếp.";
+   document.body.appendChild(panel);
+  }
+ }
  // Chỉ lưu kỷ lục một lần khi trạng thái thua/thắng thay đổi, không ghi bộ nhớ mỗi khung hình.
  if(gameOver||victory){
   const resultKey=(victory?"victory":"gameover")+":"+score;
@@ -1189,6 +1205,7 @@ document.getElementById("continuebtn").addEventListener("click",()=>{
  makeWorld(levelIndex);player.hp=player.maxHp;started=true;persistCheckpoint();canvas.focus();beep(420,.08,"triangle",.03);
 });
 canvas.addEventListener("pointerdown",()=>{canvas.focus();});
+canvas.setAttribute("tabindex","0");
 // Touch controls use pointer events so they work on phones, tablets, and desktop testing.
 function releaseTouchButtons(){document.querySelectorAll("[data-touch]").forEach(btn=>{keys[btn.dataset.touch]=false;btn.classList.remove("pressed");});}
 document.querySelectorAll("[data-touch]").forEach(btn=>{
@@ -1229,3 +1246,4 @@ canvas.focus();
 </script>
 </body>
 </html>
+
