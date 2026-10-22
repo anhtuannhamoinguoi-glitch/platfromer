@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 
 BASE_DIR = Path(__file__).resolve().parent
 GAME_FILE = BASE_DIR / "game.html"
-GAME_HEIGHT = 820
+GAME_HEIGHT = 1080
 
 st.set_page_config(
     page_title="Shadowbound: Sinh Tồn Trong Bóng Tối",
@@ -31,7 +31,7 @@ st.markdown(
 )
 
 st.title("SHADOWBOUND")
-st.caption("A DARK SOULSLIKE JOURNEY  ·  3 VÙNG ĐẤT  ·  1 KẺ CANH GIỮ HƯ VÔ")
+st.caption("A DARK FANTASY PLATFORMER  ·  3 VÙNG ĐẤT  ·  1 KẺ CANH GIỮ HƯ VÔ")
 st.markdown(
     "**Điều khiển** — A/D hoặc ←/→: di chuyển · Space/W/↑: nhảy · J: tấn công · M: âm thanh · R: hồi sinh tại checkpoint sau khi thất bại. Có nút cảm ứng trên điện thoại."
 )
@@ -40,10 +40,27 @@ if not GAME_FILE.is_file():
     st.error("Không tìm thấy game.html. Hãy đặt app.py và game.html trong cùng thư mục repository.")
     st.stop()
 
-with GAME_FILE.open("r", encoding="utf-8") as game_file:
-    game_html = game_file.read()
+try:
+    game_html = GAME_FILE.read_text(encoding="utf-8")
+except OSError as exc:
+    st.error("Không thể đọc game.html. Hãy kiểm tra file có được tải lên đầy đủ không.")
+    st.exception(exc)
+    st.stop()
 
-components.html(game_html, height=GAME_HEIGHT, scrolling=False)
+if "<canvas" not in game_html or "<script" not in game_html:
+    st.error("game.html có vẻ chưa đầy đủ hoặc không phải mã nguồn game hợp lệ.")
+    st.stop()
+
+# Vùng game có HUD, canvas, nút cảm ứng và bảng lưu ở cuối.
+# Cho phép cuộn để hạn chế việc cắt mất các nút ở màn hình thấp.
+components.html(game_html, height=GAME_HEIGHT, scrolling=True)
+
+st.markdown(
+    "<p style='text-align:center;color:#77766f;font-size:0.8rem'>"
+    "Mẹo: trên điện thoại, hãy xoay ngang màn hình để có không gian chơi rộng hơn."
+    "</p>",
+    unsafe_allow_html=True,
+)
 
 st.markdown("---")
 st.subheader("🕹️ Shadowbound — Bản nâng cấp đồ họa")
