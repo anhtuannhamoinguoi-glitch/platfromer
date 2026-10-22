@@ -43,6 +43,40 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
 
+
+/* --- Layout repair: consistent canvas sizing and non-overlapping mobile HUD --- */
+html, body { width: 100%; min-height: 100%; overflow-x: hidden; }
+body { -webkit-text-size-adjust: 100%; }
+.wrap { width: 100%; max-width: 1000px; margin: 0 auto; }
+.stage { width: 100%; aspect-ratio: 16 / 9; height: auto; }
+#game { display: block; width: 100%; height: 100%; aspect-ratio: 16 / 9; object-fit: contain; }
+.menu { box-sizing: border-box; }
+.menu-card { max-height: calc(100% - 16px); overflow-y: auto; }
+@media (max-width: 760px) {
+  .hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .hud .status { grid-column: 1 / -1; }
+  .right-stats { justify-content: flex-start; flex-wrap: wrap; }
+  .audio-panel { justify-content: center; flex-wrap: wrap; }
+  .menu-card { width: min(92%, 460px); padding: 12px; }
+  .menu-title { font-size: clamp(22px, 7vw, 34px); letter-spacing: 2px; }
+  .menu-sub { line-height: 1.5; }
+  .save-grid { grid-template-columns: 1fr; }
+  .save-slot { grid-template-columns: minmax(0, 1fr); text-align: left; }
+  .save-actions { display: flex; flex-wrap: wrap; }
+  .save-btn { min-height: 34px; }
+  .shop-grid { grid-template-columns: 1fr !important; }
+  .hint { overflow-wrap: anywhere; }
+}
+@media (max-width: 380px) {
+  .wrap { padding: 3px; }
+  .hud { gap: 4px; padding: 5px 2px; }
+  .stat { padding: 3px 5px; }
+  .label { letter-spacing: 1px; }
+  .audio-panel input { width: 72px; }
+  .mobile-controls { gap: 4px; }
+  .touch-btn { min-height: 40px; font-size: 10px; }
+}
+
 </style>
 </head>
 <body>
@@ -781,6 +815,12 @@ function drawWorld(cam){
   rect(p.x-cam,p.y,p.w,p.h,stoneBase);rect(p.x-cam,p.y,p.w,4,stoneTop);rect(p.x-cam,p.y+4,p.w,3,stoneEdge);
   for(let x=9;x<p.w;x+=25){rect(p.x-cam+x,p.y+8,11,3,levelIndex===0?"#25293d":levelIndex===1?"#252d31":"#2d202b");rect(p.x-cam+x+5,p.y+11,4,2,levelIndex===0?"#4b465e":levelIndex===1?"#657071":"#a35c60");}
   for(let x=12;x<p.w;x+=47)rect(p.x-cam+x,p.y-3,3,3,stoneTop);
+  // Uneven chips, mineral streaks and tiny moss pixels break up repeating stone surfaces.
+  for(let k=0;k<Math.floor(p.w/54);k++){
+   const cx=p.x-cam+13+k*54+((i*11+k*7)%19), cy=p.y+15+((i*5+k*9)%Math.max(8,p.h-16));
+   rect(cx,cy,3+(k%3),2,levelIndex===0?(k%2?'#465044':'#242a3d'):levelIndex===1?(k%2?'#66706e':'#22292e'):(k%2?'#7e484b':'#2a2029'));
+   if(levelIndex===0&&k%2===0)rect(cx+4,cy-2,2,3,'#536b50');
+  }
  });
  // Ancient runes etched into selected platforms.
  platforms().forEach((p,i)=>{
@@ -793,6 +833,46 @@ function drawWorld(cam){
    ctx.beginPath();ctx.moveTo(rx,ry-2);ctx.lineTo(rx,ry+3);ctx.stroke();ctx.restore();
   }
  });
+ // Environmental storytelling: old grave markers, broken shrines, ruined columns and bone stakes.
+ // These are decorative only; their positions are deterministic and never alter collision/gameplay.
+ const decorStep = levelIndex===1 ? 205 : levelIndex===2 ? 178 : 232;
+ const decorStart = Math.max(0, Math.floor(cam/decorStep)-1);
+ const decorEnd = Math.min(Math.ceil(world.length/decorStep), Math.ceil((cam+W)/decorStep)+2);
+ for(let di=decorStart;di<decorEnd;di++){
+  const wx=di*decorStep+53+((di*37)%61), sx=wx-cam;
+  if(world.pits.some(p=>wx>p[0]-28&&wx<p[1]+28)) continue;
+  const groundY=world.ground, variant=(di*7+levelIndex*3)%5;
+  if(levelIndex===0){
+   // Moss-covered grave stones and tiny violet votive candles in the haunted forest.
+   const gh=20+(variant%3)*7, gw=17+(variant%2)*5;
+   ctx.fillStyle='#101722';ctx.beginPath();ctx.moveTo(sx-gw/2,groundY);ctx.lineTo(sx-gw/2,groundY-gh+7);ctx.lineTo(sx-gw/2+4,groundY-gh);ctx.lineTo(sx+gw/2-4,groundY-gh);ctx.lineTo(sx+gw/2,groundY-gh+6);ctx.lineTo(sx+gw/2,groundY);ctx.closePath();ctx.fill();
+   rect(sx-gw/2+3,groundY-gh+6,gw-6,2,'#52605f');rect(sx-1,groundY-gh+10,2,gh-14,'#343d4c');rect(sx-4,groundY-gh+14,8,2,'#343d4c');
+   rect(sx+gw/2+5,groundY-8,3,8,'#4a343c');rect(sx+gw/2+3,groundY-11,7,4,variant%2?'#b66dca':'#8f9fea');glow(sx+gw/2+6,groundY-11,12,variant%2?'#c084fc':'#818cf8',.18);
+   if(variant===0){ctx.strokeStyle='#172b2c';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx-17,groundY-2);ctx.lineTo(sx-20,groundY-21);ctx.lineTo(sx-27,groundY-30);ctx.moveTo(sx-20,groundY-21);ctx.lineTo(sx-10,groundY-29);ctx.stroke();}
+  } else if(levelIndex===1){
+   // Cracked dungeon pillars, iron chains and a faintly glowing wall rune.
+   const ph=42+(variant%3)*13, pw=18;
+   rect(sx-pw/2-3,groundY-ph, pw+6,5,'#777a78');rect(sx-pw/2,groundY-ph+5,pw,ph-5,'#333b40');
+   rect(sx-pw/2-2,groundY-ph+11,4,ph-14,'#515b5d');rect(sx+pw/2-2,groundY-ph+17,3,ph-20,'#20282d');
+   rect(sx-4,groundY-ph+20,3,10,'#151b20');rect(sx-4,groundY-ph+28,9,2,'#151b20');
+   ctx.save();ctx.globalAlpha=.28+.12*Math.sin(performance.now()/320+di);ctx.strokeStyle='#7dd3c7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx+24,groundY-ph+17);ctx.lineTo(sx+29,groundY-ph+10);ctx.lineTo(sx+34,groundY-ph+17);ctx.lineTo(sx+29,groundY-ph+24);ctx.closePath();ctx.stroke();ctx.restore();
+   if(variant===2){ctx.strokeStyle='#282f34';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx-14,groundY-ph-8);ctx.lineTo(sx-14,groundY-ph+9);ctx.lineTo(sx-8,groundY-ph+15);ctx.moveTo(sx-18,groundY-ph+1);ctx.lineTo(sx-10,groundY-ph+1);ctx.stroke();}
+  } else {
+   // Ashen battlefield: broken spears, bone piles and small ember braziers.
+   if(variant%2===0){ctx.strokeStyle='#3c2930';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx-7,groundY);ctx.lineTo(sx+4,groundY-38);ctx.lineTo(sx+2,groundY-46);ctx.moveTo(sx+1,groundY-28);ctx.lineTo(sx-9,groundY-34);ctx.stroke();rect(sx+1,groundY-47,4,5,'#a88a75');}
+   else {rect(sx-15,groundY-5,29,5,'#2a2028');rect(sx-11,groundY-9,8,4,'#6c5557');rect(sx-1,groundY-11,10,5,'#50434a');rect(sx+7,groundY-7,7,3,'#8c7474');}
+   rect(sx+17,groundY-13,8,13,'#3d3032');rect(sx+15,groundY-16,12,4,'#79605a');
+   const ember=.45+.35*Math.sin(performance.now()/180+di);glow(sx+21,groundY-19,18,'#ff6538',ember*.3);rect(sx+19,groundY-23,4,7,'#ff9a48');rect(sx+20,groundY-21,2,4,'#ffe3a1');
+  }
+ }
+ // A few distant ravens cross the moonlit sky, adding scale to the ruins.
+ if(levelIndex===0){
+  for(let bi=0;bi<4;bi++){
+   const bx=((bi*251+performance.now()*.018*(bi%2?1:-.65)-cam*.035)%(W+100)+W+100)%(W+100)-35;
+   const by=75+bi*29+Math.sin(performance.now()*.0015+bi)*5, wing=Math.sin(performance.now()*.018+bi)*4;
+   ctx.strokeStyle='#090d18';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx-7,by);ctx.lineTo(bx,by+wing);ctx.lineTo(bx+7,by);ctx.stroke();rect(bx-1,by,3,2,'#202437');
+  }
+ }
  // Floating spectral wisps that drift at different depths.
  for(let i=0;i<12;i++){
   const wx=((i*103+performance.now()*.018*(i%3+1)-cam*.16)%(W+80)+W+80)%(W+80)-20;
