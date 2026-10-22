@@ -3,6 +3,10 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<title>SHADOWBOUND — Dark Fantasy Platformer</title>
+<meta name="theme-color" content="#080a0b">
+<meta name="description" content="SHADOWBOUND — game platformer pixel art dark fantasy.">
+<meta name="color-scheme" content="dark">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 *{box-sizing:border-box}
@@ -11,13 +15,35 @@ html,body{margin:0;background:#080a0b;color:#d8d2c3;font-family:Georgia,'Courier
 .hud{display:grid;grid-template-columns:minmax(210px,1.5fr) minmax(100px,.7fr) minmax(120px,.8fr);gap:8px;align-items:center;padding:8px 4px 10px;color:#d8d2c3;font-size:12px;letter-spacing:.5px}
 .status{display:flex;flex-direction:column;gap:5px;min-width:0}.label{font-size:10px;letter-spacing:2px;color:#999487;text-transform:uppercase}.bar{height:12px;background:#211b19;border:1px solid #5b493a;padding:2px;box-shadow:inset 0 1px 3px #000}.bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d171b,#a42b2b 65%,#d14b3d);transition:width .12s linear}.subbar{height:5px;background:#171d21;border:1px solid #3b4649;padding:1px}.subfill{height:100%;width:100%;background:#657f91;transition:width .12s linear}.stat{border-left:1px solid #4a4438;padding:4px 10px;min-height:34px}.stat b{display:block;color:#e2d9c4;font-size:15px;font-weight:normal;letter-spacing:1px}.stat small{display:block;color:#8e8a7e;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}.right-stats{display:flex;justify-content:flex-end;gap:12px}.stat em{font-style:normal;color:#c7a96b}
 .audio-panel{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 4px 8px;font-size:10px;color:#bdb8aa}.audio-btn{border:1px solid #76613d;background:#201b20;color:#ead8b4;padding:6px 9px;font:600 10px Georgia,serif;letter-spacing:.5px;cursor:pointer}.audio-btn:hover{background:#3c2b2b}.audio-panel input{width:90px;accent-color:#c7a96b}.audio-label{color:#8e8a7e;letter-spacing:1px}@media(max-width:600px){.audio-panel{justify-content:center;flex-wrap:wrap}}
-.stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);}
+.stage{position:relative;border:1px solid #817052;background:#050708;line-height:0;overflow:hidden;box-shadow:inset 0 0 34px #000,0 0 24px #7c3aed18}canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#101319;image-rendering:pixelated;outline:none;filter:saturate(1.12) contrast(1.04);touch-action:manipulation;}
 .hint{font-size:10px;line-height:1.7;color:#8d8a80;padding:9px 4px 2px;text-align:center;letter-spacing:.4px;border-top:1px solid #292821;margin-top:5px}
 .menu{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(5,7,8,.56) 58%,rgba(4,6,7,.2));line-height:1.4}.menu-card{width:54%;padding:22px 24px;border-left:2px solid #a58a55;background:linear-gradient(90deg,rgba(9,11,12,.92),rgba(9,11,12,.45));text-shadow:0 2px #000}.eyebrow{font-size:9px;letter-spacing:4px;color:#b59a65;margin-bottom:10px}.menu-title{font:700 clamp(22px,4vw,42px) Georgia,serif;letter-spacing:3px;color:#e4ddca;text-shadow:0 3px #342b20,0 0 18px #c3a26733}.menu-sub{font-size:10px;letter-spacing:2px;color:#9a978b;margin:8px 0 20px}.rule{height:1px;background:linear-gradient(90deg,#a58a55,transparent);margin:15px 0}.start-btn{display:block;width:100%;padding:12px 15px;background:#8e2527;border:1px solid #d0a66b;color:#f4e8cd;font:700 12px Georgia,serif;letter-spacing:3px;cursor:pointer;box-shadow:0 3px 0 #351516;transition:background .15s,transform .15s}.start-btn:hover{background:#aa3031;transform:translateY(-1px)}.difficulty{display:flex;gap:6px;margin:14px 0 4px}.diff-btn{flex:1;padding:9px 4px;background:#17191b;border:1px solid #514838;color:#bdb8aa;font:600 10px Georgia,serif;letter-spacing:1px;cursor:pointer}.diff-btn.active{background:#3a2823;border-color:#c7a96b;color:#f4e8cd;box-shadow:inset 0 -2px #a33b36}.diff-desc{font-size:9px;color:#999487;min-height:14px;margin-top:6px}.menu-note{font-size:10px;color:#a09a8b;margin-top:13px;letter-spacing:.5px}.corner{position:absolute;right:14px;bottom:12px;color:#b8a779;font-size:9px;letter-spacing:2px;opacity:.85}
 .save-panel{padding:10px 8px;margin-top:9px;border:1px solid #494438;background:linear-gradient(120deg,#10131a,#17121c);color:#cfc5ad;font-size:11px;line-height:1.4}.save-title{font-size:11px;letter-spacing:2px;color:#e3c47f;margin-bottom:8px}.save-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.save-slot{padding:8px;border:1px solid #514838;background:#0b0e12;text-align:center}.save-slot b{display:block;color:#e3d8c2;font-size:11px;margin-bottom:5px}.save-status{display:block;min-height:26px;color:#8e9b9d;font-size:9px;margin:5px 0}.save-actions{display:flex;gap:5px}.save-btn{flex:1;padding:7px 4px;border:1px solid #76613d;background:#252019;color:#e9d9b8;font:600 9px Georgia,serif;cursor:pointer;letter-spacing:.4px}.save-btn:hover:not(:disabled){background:#483222}.save-btn:disabled{opacity:.35;cursor:not-allowed}.save-note{color:#8f918d;font-size:9px;margin-top:8px}@media(max-width:600px){.save-grid{grid-template-columns:1fr}.save-slot{display:grid;grid-template-columns:1fr;}.save-status{min-height:0}}
 .mobile-controls{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:8px 0 2px;touch-action:none}.touch-btn{min-height:45px;border:1px solid #76613d;background:linear-gradient(145deg,#292333,#11131a);color:#f0dfbd;font:700 12px Georgia,serif;letter-spacing:1px;border-radius:5px;touch-action:none;user-select:none;-webkit-user-select:none}.touch-btn:active,.touch-btn.pressed{background:#68402e;border-color:#e7bd75;transform:translateY(1px)}@media(max-width:760px),(pointer:coarse){.mobile-controls{display:grid}.wrap{padding:5px}.hud{font-size:11px}.stage{touch-action:pan-y}.hint{font-size:9px}}
 .shop-item{padding:11px 8px;background:linear-gradient(160deg,#211b2c,#100f19);border:1px solid #65503c;box-shadow:inset 0 0 18px #a855f711;text-align:center;line-height:1.45;display:flex;flex-direction:column;align-items:center;gap:7px}.shop-item b{font-size:11px;letter-spacing:.5px;color:#f0dfbd}.shop-item p{font-size:10px;color:#aaa2b7;min-height:30px;margin:0}.shop-item small{font-size:10px;color:#e5bd70}.shop-icon{font-size:28px;color:#e6c47e;text-shadow:0 0 14px #e6c47e66}.buy-btn{padding:9px 6px;margin-top:auto;font-size:10px;letter-spacing:1px}.buy-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
 @media(max-width:600px){.hud{grid-template-columns:1fr 1fr}.right-stats{justify-content:flex-start}.menu-card{width:76%;padding:12px}.menu-sub{margin-bottom:10px}.menu-note{display:none}.shop-grid{grid-template-columns:1fr!important;max-height:320px;overflow:auto}.shop-item{display:grid;grid-template-columns:32px 1fr;align-items:center;text-align:left}.shop-item p,.shop-item small,.shop-item button{grid-column:2}.shop-item p{min-height:0}}
+
+/* Responsive polish: keep HUD and save controls usable on narrow screens. */
+@media (max-width: 700px) {
+  .wrap { padding: 5px; border-radius: 3px; }
+  .hud { grid-template-columns: minmax(0, 1fr) auto; gap: 5px; font-size: 11px; }
+  .hud .status { grid-column: 1 / -1; }
+  .right-stats { gap: 6px; flex-wrap: wrap; }
+  .stat { padding: 3px 6px; min-height: 28px; }
+  .menu-card { width: 88%; padding: 14px; }
+  .eyebrow { letter-spacing: 2px; }
+  .menu-sub { margin-bottom: 10px; }
+  .save-grid { grid-template-columns: 1fr; }
+  .save-slot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 8px; align-items: center; text-align: left; }
+  .save-slot b { margin: 0; }
+  .save-status { min-height: 0; margin: 0; }
+  .save-actions { grid-column: 1 / -1; }
+  .hint { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
+
 </style>
 </head>
 <body>
